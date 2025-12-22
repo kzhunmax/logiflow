@@ -1,8 +1,12 @@
 package com.logiflow.catalog.controller;
 
+import com.logiflow.catalog.dto.ProductRequestDTO;
 import com.logiflow.catalog.model.Product;
 import com.logiflow.catalog.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,7 +24,8 @@ public class CatalogController {
     }
 
     @PostMapping
-    public Product create(@RequestBody Product product) {
-        return productService.create(product);
+    public ResponseEntity<@NonNull Product> create(@Valid @RequestBody ProductRequestDTO dto) {
+        Product created = productService.create(dto);
+        return ResponseEntity.ok(created);
     }
 }

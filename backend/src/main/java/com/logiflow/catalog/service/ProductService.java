@@ -1,5 +1,6 @@
 package com.logiflow.catalog.service;
 
+import com.logiflow.catalog.dto.ProductRequestDTO;
 import com.logiflow.catalog.model.Product;
 import com.logiflow.catalog.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,17 @@ public class ProductService {
         return productRepository.findAll();
     }
 
-    public Product create(Product product) {
+    public Product create(ProductRequestDTO dto) {
+        Product product = mapToEntity(dto);
         return productRepository.save(product);
+    }
+
+    private Product mapToEntity(ProductRequestDTO dto) {
+        return Product.builder()
+                .name(dto.name())
+                .sku(dto.sku())
+                .price(dto.price())
+                .attributes(dto.attributes())
+                .build();
     }
 }

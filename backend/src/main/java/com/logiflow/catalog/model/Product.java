@@ -1,5 +1,6 @@
 package com.logiflow.catalog.model;
 
+import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -9,6 +10,7 @@ import java.util.Map;
 
 @Document(collection = "products")
 @Getter
+@Builder
 public class Product {
 
     @Id
