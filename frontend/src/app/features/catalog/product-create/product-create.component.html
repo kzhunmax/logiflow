@@ -1,0 +1,42 @@
+<div class="card p-4">
+  <h2>Create New Product</h2>
+
+  <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+
+    <div class="mb-3 flex flex-column gap-2">
+      <label for="name">Product Name</label>
+      <input pInputText id="name" formControlName="name" placeholder="e.g. Gaming Laptop" />
+    </div>
+
+    <div class="mb-3 flex flex-column gap-2">
+      <label for="sku">SKU</label>
+      <input pInputText id="sku" formControlName="sku" placeholder="e.g. LAP-123" />
+    </div>
+
+    <div class="mb-3 flex flex-column gap-2">
+      <label for="price">Price</label>
+      <input pInputText type="number" id="price" formControlName="price" placeholder="0.00" />
+    </div>
+
+    <div class="mb-3">
+      <h3>Dynamic Attributes</h3>
+      <p-button label="Add Attribute" icon="pi pi-plus" (onClick)="addAttribute()" size="small" [outlined]="true"></p-button>
+
+      <div formArrayName="attributes" class="mt-3">
+        <div *ngFor="let attr of attributes.controls; let i = index" [formGroupName]="i" class="flex gap-2 mb-2 align-items-center">
+
+          <input pInputText formControlName="key" placeholder="Key (e.g. Color)" />
+          <input pInputText formControlName="value" placeholder="Value (e.g. Red)" />
+
+          <p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeAttribute(i)"></p-button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <p-button label="Create Product" type="submit" [disabled]="productForm.invalid"></p-button>
+      <p-button label="Cancel" severity="secondary" [text]="true" class="ml-2" routerLink="/catalog"></p-button>
+    </div>
+
+  </form>
+</div>
