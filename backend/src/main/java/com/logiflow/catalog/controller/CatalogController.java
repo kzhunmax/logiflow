@@ -5,10 +5,10 @@ import com.logiflow.catalog.model.Product;
 import com.logiflow.catalog.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/catalog/products")
@@ -18,8 +18,8 @@ public class CatalogController {
     private final ProductService productService;
 
     @GetMapping
-    public List<Product> getAllProducts() {
-        return productService.getAllProducts();
+    public Page<Product> getAllProducts(Pageable pageable, @RequestParam(required = false) String search) {
+        return productService.getAllProducts(pageable, search);
     }
 
     @PostMapping

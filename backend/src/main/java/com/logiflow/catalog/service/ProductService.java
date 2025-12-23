@@ -5,9 +5,9 @@ import com.logiflow.catalog.model.Product;
 import com.logiflow.catalog.repository.ProductRepository;
 import com.logiflow.shared.exception.ProductNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -15,8 +15,11 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    public List<Product> getAllProducts() {
-        return productRepository.findByActiveTrue();
+    public Page<Product> getAllProducts(Pageable pageable, String search) {
+        if (search != null && !search.isBlank()) {
+            return productRepository.findByNameContainingIgnoreCaseOrSkuContainingIgnoreCaseAndActiveTrue(search, search, pageable);
+        }
+        return productRepository.findByActiveTrue(pageable);
     }
 
     public Product createProduct(ProductRequestDTO dto) {
