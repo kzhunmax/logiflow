@@ -1,9 +1,6 @@
 package com.logiflow.catalog.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -14,6 +11,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 @Builder
 public class Product {
 
@@ -25,4 +23,7 @@ public class Product {
     private BigDecimal price;
 
     private Map<String, Object> attributes;
+
+    @Builder.Default
+    private Boolean active = true;
 }
