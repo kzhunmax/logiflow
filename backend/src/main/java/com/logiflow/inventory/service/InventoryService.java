@@ -1,8 +1,10 @@
 package com.logiflow.inventory.service;
 
+import com.logiflow.inventory.dto.InventoryResponseDTO;
 import com.logiflow.inventory.model.Inventory;
 import com.logiflow.inventory.repository.InventoryRepository;
 import com.logiflow.shared.exception.InsufficientStockException;
+import com.logiflow.shared.exception.InventoryNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -37,5 +39,12 @@ public class InventoryService {
                 throw new InsufficientStockException("Insufficient stock available to reserve");
             }
         });
+    }
+
+    public InventoryResponseDTO getAvailableInventory(String sku) {
+        Inventory inventory = inventoryRepository.findBySku(sku)
+                .orElseThrow(() -> new InventoryNotFoundException(sku));
+        int available = inventory.getQuantity() - inventory.getReserved();
+        return new InventoryResponseDTO(inventory.getSku(), available);
     }
 }

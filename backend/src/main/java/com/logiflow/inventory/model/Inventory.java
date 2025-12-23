@@ -23,7 +23,8 @@ public class Inventory {
     private String sku;
 
     private Integer quantity;
-    private Integer reserved;
+    @Builder.Default
+    private Integer reserved = 0;
     private LocalDateTime lastUpdated;
 
     @Version
