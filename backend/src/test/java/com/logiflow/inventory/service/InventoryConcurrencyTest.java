@@ -33,20 +33,12 @@ public class InventoryConcurrencyTest extends TestcontainersConfiguration {
     @BeforeEach
     void setUp() {
         inventoryRepository.deleteAll();
-
-        Inventory inventory = Inventory.builder()
-                .sku(TEST_SKU)
-                .quantity(1)
-                .reserved(0)
-                .build();
-        inventoryRepository.save(inventory);
     }
 
     @Test
     @DisplayName("should handle concurrent reservations without negative stock")
     void shouldNeverAllowNegativeStock_UnderHighConcurrency() throws InterruptedException {
         // Given - Setup inventory with 10 items
-        inventoryRepository.deleteAll();
         Inventory inventory = Inventory.builder()
                 .sku(TEST_SKU)
                 .quantity(10)
@@ -57,8 +49,8 @@ public class InventoryConcurrencyTest extends TestcontainersConfiguration {
         int numberOfThreads = 20;
         CountDownLatch startLatch = new CountDownLatch(1);
         CountDownLatch completionLatch = new CountDownLatch(numberOfThreads);
-
         AtomicInteger successCount = new AtomicInteger(0);
+
         try (ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads)) {
             // When - Each thread tries to reserve 1 item
             for (int i = 0; i < numberOfThreads; i++) {
@@ -83,20 +75,12 @@ public class InventoryConcurrencyTest extends TestcontainersConfiguration {
         // Then
         Inventory finalInventory = inventoryRepository.findBySku(TEST_SKU).orElseThrow();
 
-        // Reserved should never exceed quantity
         assertThat(finalInventory.getReserved())
-                .as("Reserved should not exceed total quantity")
-                .isLessThanOrEqualTo(finalInventory.getQuantity());
+                .as("Reserved should exactly match total quantity (10)")
+                .isEqualTo(10);
 
-        // Available stock should never be negative
-        int availableStock = finalInventory.getQuantity() - finalInventory.getReserved();
-        assertThat(availableStock)
-                .as("Available stock should never be negative")
-                .isGreaterThanOrEqualTo(0);
-
-        // Success count should match reserved items
         assertThat(successCount.get())
-                .as("Success count should match reserved quantity")
-                .isEqualTo(finalInventory.getReserved());
+                .as("Should have exactly 10 successful reservations")
+                .isEqualTo(10);
     }
 }

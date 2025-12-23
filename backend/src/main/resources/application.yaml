@@ -1,3 +1,6 @@
 spring:
   application:
     name: LogiFlow
+  jpa:
+    show-sql: true
+    open-in-view: false

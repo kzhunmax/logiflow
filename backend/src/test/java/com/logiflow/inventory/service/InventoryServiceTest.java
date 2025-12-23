@@ -3,6 +3,7 @@ package com.logiflow.inventory.service;
 import com.logiflow.inventory.model.Inventory;
 import com.logiflow.inventory.repository.InventoryRepository;
 import com.logiflow.shared.exception.InsufficientStockException;
+import com.logiflow.shared.exception.InventoryNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.never;
 class InventoryServiceTest {
 
     private static final String TEST_SKU = "SKU-001";
+    private static final Long TEST_ID = 1L;
     private static final Integer INITIAL_QUANTITY = 100;
     private static final Integer INITIAL_RESERVED = 10;
 
@@ -45,7 +47,7 @@ class InventoryServiceTest {
     @BeforeEach
     void setUp() {
         existingInventory = Inventory.builder()
-                .id("inv-123")
+                .id(TEST_ID)
                 .sku(TEST_SKU)
                 .quantity(INITIAL_QUANTITY)
                 .reserved(INITIAL_RESERVED)
@@ -138,7 +140,7 @@ class InventoryServiceTest {
         void shouldReserveStock_WhenSufficientQuantityAvailable() {
             // Given
             Integer amountToReserve = 50;
-            given(inventoryRepository.findBySku(TEST_SKU)).willReturn(Optional.of(existingInventory));
+            given(inventoryRepository.findBySkuForUpdate(TEST_SKU)).willReturn(Optional.of(existingInventory));
 
             // When
             inventoryService.reserveStock(TEST_SKU, amountToReserve);
@@ -155,7 +157,7 @@ class InventoryServiceTest {
         void shouldReserveStock_WhenExactlyMatchingAvailableQuantity() {
             // Given
             Integer availableStock = INITIAL_QUANTITY - INITIAL_RESERVED; // 90
-            given(inventoryRepository.findBySku(TEST_SKU)).willReturn(Optional.of(existingInventory));
+            given(inventoryRepository.findBySkuForUpdate(TEST_SKU)).willReturn(Optional.of(existingInventory));
 
             // When
             inventoryService.reserveStock(TEST_SKU, availableStock);
@@ -172,7 +174,7 @@ class InventoryServiceTest {
         void shouldThrowException_WhenInsufficientStockAvailable() {
             // Given
             Integer excessiveAmount = INITIAL_QUANTITY - INITIAL_RESERVED + 1; // 91
-            given(inventoryRepository.findBySku(TEST_SKU)).willReturn(Optional.of(existingInventory));
+            given(inventoryRepository.findBySkuForUpdate(TEST_SKU)).willReturn(Optional.of(existingInventory));
 
             // When / Then
             assertThatThrownBy(() -> inventoryService.reserveStock(TEST_SKU, excessiveAmount))
@@ -187,10 +189,11 @@ class InventoryServiceTest {
         void shouldNotSave_WhenSkuDoesNotExist() {
             // Given
             String nonExistentSku = "NON-EXISTENT-SKU";
-            given(inventoryRepository.findBySku(nonExistentSku)).willReturn(Optional.empty());
+            given(inventoryRepository.findBySkuForUpdate(nonExistentSku)).willReturn(Optional.empty());
 
             // When
-            inventoryService.reserveStock(nonExistentSku, 10);
+            assertThatThrownBy(() -> inventoryService.reserveStock(nonExistentSku, 10))
+                    .isInstanceOf(InventoryNotFoundException.class);
 
             // Then
             then(inventoryRepository).should(never()).save(any(Inventory.class));
@@ -201,7 +204,7 @@ class InventoryServiceTest {
         void shouldHandleZeroReservation() {
             // Given
             Integer amountToReserve = 0;
-            given(inventoryRepository.findBySku(TEST_SKU)).willReturn(Optional.of(existingInventory));
+            given(inventoryRepository.findBySkuForUpdate(TEST_SKU)).willReturn(Optional.of(existingInventory));
 
             // When
             inventoryService.reserveStock(TEST_SKU, amountToReserve);
@@ -218,7 +221,7 @@ class InventoryServiceTest {
         void shouldPreserveInventoryProperties_WhenReservingStock() {
             // Given
             Integer amountToReserve = 20;
-            given(inventoryRepository.findBySku(TEST_SKU)).willReturn(Optional.of(existingInventory));
+            given(inventoryRepository.findBySkuForUpdate(TEST_SKU)).willReturn(Optional.of(existingInventory));
 
             // When
             inventoryService.reserveStock(TEST_SKU, amountToReserve);
@@ -237,12 +240,12 @@ class InventoryServiceTest {
         void shouldThrowException_WhenAllStockAlreadyReserved() {
             // Given
             Inventory fullyReservedInventory = Inventory.builder()
-                    .id("inv-456")
+                    .id(2L)
                     .sku(TEST_SKU)
                     .quantity(100)
                     .reserved(100)
                     .build();
-            given(inventoryRepository.findBySku(TEST_SKU)).willReturn(Optional.of(fullyReservedInventory));
+            given(inventoryRepository.findBySkuForUpdate(TEST_SKU)).willReturn(Optional.of(fullyReservedInventory));
 
             // When / Then
             assertThatThrownBy(() -> inventoryService.reserveStock(TEST_SKU, 1))
