@@ -2,5 +2,7 @@ spring:
   jpa:
     show-sql: true
     open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
   datasource:
     driver-class-name: org.postgresql.Driver
