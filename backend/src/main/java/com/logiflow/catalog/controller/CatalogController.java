@@ -22,6 +22,11 @@ public class CatalogController {
         return productService.getAllProducts(pageable, search);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Product> getProductById(@PathVariable String id) {
+        return ResponseEntity.ok(productService.getProductById(id));
+    }
+
     @PostMapping
     public ResponseEntity<Product> createProduct(@Valid @RequestBody ProductRequestDTO dto) {
         Product created = productService.createProduct(dto);

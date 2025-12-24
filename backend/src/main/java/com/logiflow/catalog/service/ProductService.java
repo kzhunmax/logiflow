@@ -28,24 +28,25 @@ public class ProductService {
     }
 
     public Product updateProduct(String id, ProductRequestDTO dto) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(id));
+        Product product = getProductById(id);
 
         product.setName(dto.name());
         product.setSku(dto.sku());
         product.setPrice(dto.price());
-
         product.setAttributes(dto.attributes());
 
         return productRepository.save(product);
     }
 
     public void deleteProduct(String id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(id));
-
+        Product product = getProductById(id);
         product.setActive(false);
         productRepository.save(product);
+    }
+
+    public Product getProductById(String id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
     }
 
     private Product mapToEntity(ProductRequestDTO dto) {
