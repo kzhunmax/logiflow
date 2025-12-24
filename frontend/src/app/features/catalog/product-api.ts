@@ -1,14 +1,14 @@
 import {Injectable, inject} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {Product} from '../models/product.model';
-import {Page} from '../models/page.model';
+import {Product} from './product';
+import {Page} from '@core/models/page';
 
 @Injectable({
   providedIn: 'root'
 })
 
-export class ProductService {
+export class ProductApi {
   private http = inject(HttpClient);
   private readonly apiUrl = 'api/catalog/products';
 

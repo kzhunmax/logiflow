@@ -1,7 +1,7 @@
 import {Component, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {Router} from '@angular/router';
-import {ProductService} from '../../../core/services/product.service';
+import {ProductApi} from '../product-api';
 import {ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators} from '@angular/forms';
 import {ButtonModule} from 'primeng/button';
 import {InputTextModule} from 'primeng/inputtext';
@@ -9,13 +9,13 @@ import {InputTextModule} from 'primeng/inputtext';
 @Component({
   selector: 'app-product-create',
   imports: [CommonModule, ReactiveFormsModule, ButtonModule, InputTextModule],
-  templateUrl: './product-create.component.html',
-  styleUrl: './product-create.component.scss',
+  templateUrl: './product-create.html',
+  styleUrl: './product-create.scss',
   standalone: true
 })
-export class ProductCreateComponent {
+export class ProductCreate {
   private fb = inject(FormBuilder);
-  private productService = inject(ProductService);
+  private productApi = inject(ProductApi);
   private router = inject(Router);
 
   productForm: FormGroup = this.fb.group({
@@ -42,7 +42,7 @@ export class ProductCreateComponent {
   }
 
   onSubmit(): void {
-    if(this.productForm.invalid) return;
+    if (this.productForm.invalid) return;
 
     const rawData = this.productForm.value;
 
@@ -56,7 +56,7 @@ export class ProductCreateComponent {
       attributes: transformedAttributes
     };
 
-    this.productService.createProduct(payload).subscribe({
+    this.productApi.createProduct(payload).subscribe({
       next: () => {
         alert('Product created successfully!');
         this.router.navigate(['/catalog']);
@@ -64,7 +64,7 @@ export class ProductCreateComponent {
       error: (err) => {
         console.error(err);
         alert('Failed to create product.');
-    }
+      }
     })
   }
 }

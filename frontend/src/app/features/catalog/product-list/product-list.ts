@@ -2,20 +2,20 @@ import {Component, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TableModule, TableLazyLoadEvent} from 'primeng/table';
 import {ButtonModule} from 'primeng/button';
-import {ProductService} from '../../../core/services/product.service';
-import {Product} from '../../../core/models/product.model';
+import {ProductApi} from '../product-api'
+import {Product} from '../product';
 import {RouterLink} from '@angular/router';
 
 @Component({
   selector: 'app-product-list',
   imports: [CommonModule, TableModule, ButtonModule, RouterLink],
-  templateUrl: './product-list.component.html',
-  styleUrl: './product-list.component.scss',
+  templateUrl: './product-list.html',
+  styleUrl: './product-list.scss',
   standalone: true
 })
 
-export class ProductListComponent {
-  private productService = inject(ProductService);
+export class ProductList {
+  private productApi = inject(ProductApi);
 
   products: Product[] = [];
 
@@ -29,7 +29,7 @@ export class ProductListComponent {
     const page = (event.first ?? 0) / (event.rows ?? this.pageSize);
     const size = event.rows ?? this.pageSize;
 
-    this.productService.getProducts(page, size).subscribe({
+    this.productApi.getProducts(page, size).subscribe({
       next: (response) => {
         this.products = response.content;
         this.totalRecords = response.totalElements;
@@ -45,7 +45,7 @@ export class ProductListComponent {
   deleteProduct(id: string) {
     if (!confirm('Are you sure you want to delete this product?')) return;
 
-    this.productService.deleteProduct(id).subscribe({
+    this.productApi.deleteProduct(id).subscribe({
       next: () => {
         location.reload();
       },

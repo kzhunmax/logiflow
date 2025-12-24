@@ -1,9 +1,9 @@
-import { Routes } from '@angular/router';
-import { ProductListComponent } from './features/catalog/product-list/product-list.component';
-import { ProductCreateComponent } from './features/catalog/product-create/product-create.component';
+import {Routes} from '@angular/router';
+import {ProductList} from '@features/catalog/product-list/product-list';
+import {ProductCreate} from '@features/catalog/product-create/product-create';
 
 export const routes: Routes = [
   {path: '', redirectTo: 'catalog', pathMatch: 'full'},
-  {path: 'catalog', component: ProductListComponent},
-  {path: 'catalog/create', component: ProductCreateComponent}
+  {path: 'catalog', component: ProductList},
+  {path: 'catalog/create', component: ProductCreate}
 ];
