@@ -20,8 +20,10 @@
         <th>Name</th>
         <th>SKU</th>
         <th>Price</th>
+        <th>Stock</th>
         <th>Attributes</th>
-        <th style="width: 100px">Actions</th> </tr>
+        <th style="width: 100px">Actions</th>
+      </tr>
     </ng-template>
 
     <ng-template pTemplate="body" let-product>
@@ -29,6 +31,15 @@
         <td>{{ product.name }}</td>
         <td>{{ product.sku }}</td>
         <td>{{ product.price | currency:'USD' }}</td>
+        <td>
+          <span [ngClass]="{
+              'text-red-500 font-bold': product.quantity !== undefined && product.quantity < 5,
+              'text-green-500 font-bold': product.quantity !== undefined && product.quantity >= 5
+              }"
+          >
+            {{ product.quantity ?? '-' }}
+          </span>
+        </td>
         <td>
            <span class="text-sm text-500">
              {{ product.attributes | json | slice:0:30 }}...

@@ -4,4 +4,5 @@ export interface Product {
   sku: string;
   price: number;
   attributes: Record<string, any>
+  quantity?: number;
 }
