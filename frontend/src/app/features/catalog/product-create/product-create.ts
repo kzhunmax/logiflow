@@ -1,6 +1,6 @@
 import {Component, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {Router} from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import {ProductApi} from '../product-api';
 import {ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators} from '@angular/forms';
 import {ButtonModule} from 'primeng/button';
@@ -8,7 +8,7 @@ import {InputTextModule} from 'primeng/inputtext';
 
 @Component({
   selector: 'app-product-create',
-  imports: [CommonModule, ReactiveFormsModule, ButtonModule, InputTextModule],
+  imports: [CommonModule, ReactiveFormsModule, ButtonModule, InputTextModule, RouterLink],
   templateUrl: './product-create.html',
   styleUrl: './product-create.scss',
   standalone: true

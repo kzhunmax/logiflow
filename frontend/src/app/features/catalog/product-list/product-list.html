@@ -56,6 +56,16 @@
             (onClick)="deleteProduct(product.id)">
           </p-button>
         </td>
+        <td>
+          <p-button
+            icon="pi pi-box"
+            [rounded]="true"
+            severity="info"
+            [text]="true"
+            pTooltip="Adjust Stock"
+            (onClick)="openAdjustmentDialog(product.sku)">
+          </p-button>
+        </td>
       </tr>
     </ng-template>
 
@@ -66,3 +76,10 @@
     </ng-template>
   </p-table>
 </div>
+
+
+<app-stock-adjustment
+  [(visible)]="isDialogVisible"
+  [sku]="selectedSku"
+  (stockChanged)="onStockUpdated($event)">
+</app-stock-adjustment>

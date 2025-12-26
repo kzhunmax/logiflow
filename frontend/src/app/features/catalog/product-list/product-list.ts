@@ -7,10 +7,13 @@ import {Product} from '../product';
 import {RouterLink} from '@angular/router';
 import {InventoryApi} from '@features/inventory/inventory-api';
 import {forkJoin} from 'rxjs';
+import {StockAdjustment} from '@features/inventory/stock-adjustment/stock-adjustment';
+import {Inventory} from '@features/inventory/inventory';
+import {Tooltip} from 'primeng/tooltip';
 
 @Component({
   selector: 'app-product-list',
-  imports: [CommonModule, TableModule, ButtonModule, RouterLink],
+  imports: [CommonModule, TableModule, ButtonModule, RouterLink, StockAdjustment, Tooltip],
   templateUrl: './product-list.html',
   styleUrl: './product-list.scss',
   standalone: true
@@ -25,7 +28,21 @@ export class ProductList {
   totalRecords: number = 0;
   loading: boolean = true;
   pageSize: number = 10;
+  isDialogVisible = false;
+  selectedSku = '';
 
+  openAdjustmentDialog(sku: string) {
+    this.selectedSku = sku;
+    this.isDialogVisible = true;
+  }
+
+  onStockUpdated(updatedInventory: Inventory) {
+    const index = this.products.findIndex(p => p.sku === updatedInventory.sku);
+    if (index !== -1) {
+      this.products[index].quantity = updatedInventory.availableQuantity;
+      this.products = [...this.products];
+    }
+  }
 
   loadProducts(event: TableLazyLoadEvent) {
     this.loading = true;
