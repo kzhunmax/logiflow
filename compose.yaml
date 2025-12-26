@@ -1,17 +1,52 @@
 services:
+  backend:
+    build: ./backend
+    container_name: logiflow-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_MONGODB_URI: ${MONGO_DB_URI}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - mongodb
+    networks:
+      - logiflow-network
+
+  frontend:
+    build: ./frontend
+    container_name: logiflow-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - logiflow-network
+
   mongodb:
     image: mongo:latest
     container_name: logiflow-mongo
     environment:
-      MONGO_INITDB_DATABASE: logiflow
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME}
     ports:
       - "27017:27017"
+    networks:
+      - logiflow-network
+
   postgres:
-    image: postgres:latest
+    image: postgres:18.1-alpine
     container_name: logiflow-postgres
     environment:
-      POSTGRES_DB: logiflow
-      POSTGRES_PASSWORD: secret
-      POSTGRES_USER: myuser
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
+    networks:
+      - logiflow-network
+
+networks:
+  logiflow-network:
+    driver: bridge
