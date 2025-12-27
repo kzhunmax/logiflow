@@ -6,6 +6,7 @@ import com.logiflow.inventory.repository.InventoryRepository;
 import com.logiflow.shared.exception.InsufficientStockException;
 import com.logiflow.shared.exception.InventoryNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,9 +15,25 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class InventoryService {
 
     private final InventoryRepository inventoryRepository;
+
+    @Transactional
+    public void initializeInventory(String sku) {
+        if (inventoryRepository.findBySku(sku).isPresent()) {
+            log.info("Inventory already exists for SKU: {}", sku);
+            return;
+        }
+        Inventory newInventory = Inventory.builder()
+                .sku(sku)
+                .quantity(0)
+                .reserved(0)
+                .build();
+        inventoryRepository.save(newInventory);
+        log.info("Initialized inventory for SKU: {}", sku);
+    }
 
     @Transactional
     public void addStock(String sku, Integer amount) {
