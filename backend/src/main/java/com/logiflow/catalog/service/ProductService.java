@@ -7,6 +7,7 @@ import com.logiflow.catalog.repository.ProductRepository;
 import com.logiflow.shared.event.ProductCreatedEvent;
 import com.logiflow.shared.exception.ProductNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProductService {
 
     private final ProductRepository productRepository;
@@ -38,6 +40,7 @@ public class ProductService {
     public ProductResponseDTO createProduct(ProductRequestDTO dto) {
         Product product = mapToEntity(dto);
         Product savedProduct = productRepository.save(product);
+        log.info("Publishing ProductCreatedEvent for SKU: {}", savedProduct.getSku());
         eventPublisher.publishEvent(new ProductCreatedEvent(savedProduct.getId(), savedProduct.getSku()));
         return mapToDTO(savedProduct);
     }
