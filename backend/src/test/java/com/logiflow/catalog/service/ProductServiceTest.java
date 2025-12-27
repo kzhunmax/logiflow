@@ -103,13 +103,13 @@ class ProductServiceTest {
             Pageable pageable = PageRequest.of(0, 10);
             String searchTerm = "Sample";
             Page<Product> expectedPage = new PageImpl<>(List.of(activeProduct), pageable, 1);
-            given(productRepository.findByNameContainingIgnoreCaseOrSkuContainingIgnoreCaseAndActiveTrue(searchTerm, searchTerm, pageable)).willReturn(expectedPage);
+            given(productRepository.findByNameContainingIgnoreCaseAndActiveTrueOrSkuContainingIgnoreCaseAndActiveTrue(searchTerm, searchTerm, pageable)).willReturn(expectedPage);
 
             // When
             Page<ProductResponseDTO> result = productService.getAllProducts(pageable, searchTerm);
 
             // Then
-            then(productRepository).should().findByNameContainingIgnoreCaseOrSkuContainingIgnoreCaseAndActiveTrue(searchTerm, searchTerm, pageable);
+            then(productRepository).should().findByNameContainingIgnoreCaseAndActiveTrueOrSkuContainingIgnoreCaseAndActiveTrue(searchTerm, searchTerm, pageable);
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(1);
 
@@ -117,6 +117,37 @@ class ProductServiceTest {
             assertThat(returnedProduct.id()).isEqualTo(PRODUCT_ID);
             assertThat(returnedProduct.name()).isEqualTo(PRODUCT_NAME);
             assertThat(returnedProduct.active()).isTrue();
+        }
+
+        @Test
+        @DisplayName("should return only active products when inactive products exist with matching search term")
+        void shouldReturnOnlyActiveProducts_WhenInactiveProductsExist() {
+            // Given
+            Pageable pageable = PageRequest.of(0, 10);
+            String searchTerm = "Product";
+
+            Product inactiveProduct = Product.builder()
+                    .id("prod-456")
+                    .name("Inactive Product")
+                    .sku("SKU-002")
+                    .price(BigDecimal.valueOf(29.99))
+                    .attributes(Map.of())
+                    .active(false)
+                    .build();
+
+            Page<Product> expectedPage = new PageImpl<>(List.of(activeProduct), pageable, 1);
+            given(productRepository.findByNameContainingIgnoreCaseAndActiveTrueOrSkuContainingIgnoreCaseAndActiveTrue(
+                    searchTerm, searchTerm, pageable)).willReturn(expectedPage);
+
+            // When
+            Page<ProductResponseDTO> result = productService.getAllProducts(pageable, searchTerm);
+
+            // Then
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent()).allMatch(ProductResponseDTO::active);
+            assertThat(result.getContent())
+                    .extracting(ProductResponseDTO::id)
+                    .doesNotContain(inactiveProduct.getId());
         }
     }
 

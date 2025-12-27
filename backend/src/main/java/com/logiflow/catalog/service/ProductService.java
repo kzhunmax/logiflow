@@ -22,7 +22,7 @@ public class ProductService {
     public Page<ProductResponseDTO> getAllProducts(Pageable pageable, String search) {
         Page<Product> products;
         if (search != null && !search.isBlank()) {
-            products = productRepository.findByNameContainingIgnoreCaseOrSkuContainingIgnoreCaseAndActiveTrue(search, search, pageable);
+            products = productRepository.findByNameContainingIgnoreCaseAndActiveTrueOrSkuContainingIgnoreCaseAndActiveTrue(search, search, pageable);
             return products.map(this::mapToDTO);
         }
         products = productRepository.findByActiveTrue(pageable);

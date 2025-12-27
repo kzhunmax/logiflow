@@ -11,5 +11,5 @@ import java.util.Optional;
 public interface ProductRepository extends MongoRepository<@NonNull Product, @NonNull String> {
     Page<Product> findByActiveTrue(Pageable pageable);
     Optional<Product> findBySkuAndActiveTrue(String sku);
-    Page<Product> findByNameContainingIgnoreCaseOrSkuContainingIgnoreCaseAndActiveTrue(String name, String sku, Pageable pageable);
+    Page<Product> findByNameContainingIgnoreCaseAndActiveTrueOrSkuContainingIgnoreCaseAndActiveTrue(String name, String sku, Pageable pageable);
 }
