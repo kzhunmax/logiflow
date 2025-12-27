@@ -1,6 +1,7 @@
 package com.logiflow.catalog.service;
 
 import com.logiflow.catalog.dto.ProductRequestDTO;
+import com.logiflow.catalog.dto.ProductResponseDTO;
 import com.logiflow.catalog.model.Product;
 import com.logiflow.catalog.repository.ProductRepository;
 import com.logiflow.shared.exception.ProductNotFoundException;
@@ -82,17 +83,17 @@ class ProductServiceTest {
             given(productRepository.findByActiveTrue(pageable)).willReturn(expectedPage);
 
             // When
-            Page<Product> result = productService.getAllProducts(pageable, null);
+            Page<ProductResponseDTO> result = productService.getAllProducts(pageable, null);
 
             // Then
             then(productRepository).should().findByActiveTrue(pageable);
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(1);
 
-            Product returnedProduct = result.getContent().getFirst();
-            assertThat(returnedProduct.getId()).isEqualTo(PRODUCT_ID);
-            assertThat(returnedProduct.getName()).isEqualTo(PRODUCT_NAME);
-            assertThat(returnedProduct.getActive()).isTrue();
+            ProductResponseDTO returnedProduct = result.getContent().getFirst();
+            assertThat(returnedProduct.id()).isEqualTo(PRODUCT_ID);
+            assertThat(returnedProduct.name()).isEqualTo(PRODUCT_NAME);
+            assertThat(returnedProduct.active()).isTrue();
         }
 
         @Test
@@ -105,17 +106,17 @@ class ProductServiceTest {
             given(productRepository.findByNameContainingIgnoreCaseOrSkuContainingIgnoreCaseAndActiveTrue(searchTerm, searchTerm, pageable)).willReturn(expectedPage);
 
             // When
-            Page<Product> result = productService.getAllProducts(pageable, searchTerm);
+            Page<ProductResponseDTO> result = productService.getAllProducts(pageable, searchTerm);
 
             // Then
             then(productRepository).should().findByNameContainingIgnoreCaseOrSkuContainingIgnoreCaseAndActiveTrue(searchTerm, searchTerm, pageable);
             assertThat(result).isNotNull();
             assertThat(result.getContent()).hasSize(1);
 
-            Product returnedProduct = result.getContent().getFirst();
-            assertThat(returnedProduct.getId()).isEqualTo(PRODUCT_ID);
-            assertThat(returnedProduct.getName()).isEqualTo(PRODUCT_NAME);
-            assertThat(returnedProduct.getActive()).isTrue();
+            ProductResponseDTO returnedProduct = result.getContent().getFirst();
+            assertThat(returnedProduct.id()).isEqualTo(PRODUCT_ID);
+            assertThat(returnedProduct.name()).isEqualTo(PRODUCT_NAME);
+            assertThat(returnedProduct.active()).isTrue();
         }
     }
 
@@ -129,13 +130,13 @@ class ProductServiceTest {
             given(productRepository.findById(PRODUCT_ID)).willReturn(Optional.of(activeProduct));
 
             // When
-            Product result = productService.getProductById(PRODUCT_ID);
+            ProductResponseDTO result = productService.getProductById(PRODUCT_ID);
 
             // Then
             then(productRepository).should().findById(PRODUCT_ID);
             assertThat(result).isNotNull();
-            assertThat(result.getId()).isEqualTo(PRODUCT_ID);
-            assertThat(result.getName()).isEqualTo(PRODUCT_NAME);
+            assertThat(result.id()).isEqualTo(PRODUCT_ID);
+            assertThat(result.name()).isEqualTo(PRODUCT_NAME);
         }
 
         @Test
@@ -165,7 +166,7 @@ class ProductServiceTest {
             given(productRepository.save(any(Product.class))).willReturn(activeProduct);
 
             // When
-            Product result = productService.createProduct(requestDTO);
+            ProductResponseDTO result = productService.createProduct(requestDTO);
 
             // Then
             then(productRepository).should().save(productCaptor.capture());
@@ -178,7 +179,7 @@ class ProductServiceTest {
             assertThat(capturedProduct.getActive()).isTrue();
 
             assertThat(result).isNotNull();
-            assertThat(result.getId()).isEqualTo(PRODUCT_ID);
+            assertThat(result.id()).isEqualTo(PRODUCT_ID);
         }
     }
 
@@ -197,7 +198,7 @@ class ProductServiceTest {
             given(productRepository.save(any(Product.class))).willAnswer(invocation -> invocation.getArgument(0));
 
             // When
-            Product result = productService.updateProduct(PRODUCT_ID, updateDTO);
+            ProductResponseDTO result = productService.updateProduct(PRODUCT_ID, updateDTO);
 
             // Then
             then(productRepository).should().findById(PRODUCT_ID);
@@ -209,8 +210,8 @@ class ProductServiceTest {
             assertThat(capturedProduct.getPrice()).isEqualTo(UPDATED_PRICE);
             assertThat(capturedProduct.getAttributes()).isEqualTo(UPDATED_ATTRIBUTES);
 
-            assertThat(result.getName()).isEqualTo(UPDATED_NAME);
-            assertThat(result.getPrice()).isEqualTo(UPDATED_PRICE);
+            assertThat(result.name()).isEqualTo(UPDATED_NAME);
+            assertThat(result.price()).isEqualTo(UPDATED_PRICE);
         }
 
         @Test

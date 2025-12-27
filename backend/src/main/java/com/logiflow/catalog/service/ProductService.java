@@ -1,6 +1,7 @@
 package com.logiflow.catalog.service;
 
 import com.logiflow.catalog.dto.ProductRequestDTO;
+import com.logiflow.catalog.dto.ProductResponseDTO;
 import com.logiflow.catalog.model.Product;
 import com.logiflow.catalog.repository.ProductRepository;
 import com.logiflow.shared.exception.ProductNotFoundException;
@@ -18,21 +19,25 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    public Page<Product> getAllProducts(Pageable pageable, String search) {
+    public Page<ProductResponseDTO> getAllProducts(Pageable pageable, String search) {
+        Page<Product> products;
         if (search != null && !search.isBlank()) {
-            return productRepository.findByNameContainingIgnoreCaseOrSkuContainingIgnoreCaseAndActiveTrue(search, search, pageable);
+            products = productRepository.findByNameContainingIgnoreCaseOrSkuContainingIgnoreCaseAndActiveTrue(search, search, pageable);
+            return products.map(this::mapToDTO);
         }
-        return productRepository.findByActiveTrue(pageable);
+        products = productRepository.findByActiveTrue(pageable);
+        return products.map(this::mapToDTO);
     }
 
     @CachePut(value = "products", key = "#result.id")
-    public Product createProduct(ProductRequestDTO dto) {
+    public ProductResponseDTO createProduct(ProductRequestDTO dto) {
         Product product = mapToEntity(dto);
-        return productRepository.save(product);
+        Product savedProduct = productRepository.save(product);
+        return mapToDTO(savedProduct);
     }
 
     @CachePut(value = "products", key = "#id")
-    public Product updateProduct(String id, ProductRequestDTO dto) {
+    public ProductResponseDTO updateProduct(String id, ProductRequestDTO dto) {
         Product product = findProductOrThrow(id);
 
         product.setName(dto.name());
@@ -40,7 +45,8 @@ public class ProductService {
         product.setPrice(dto.price());
         product.setAttributes(dto.attributes());
 
-        return productRepository.save(product);
+        Product savedProduct = productRepository.save(product);
+        return mapToDTO(savedProduct);
     }
 
     @CacheEvict(value = "products", key = "#id")
@@ -51,8 +57,8 @@ public class ProductService {
     }
 
     @Cacheable(value = "products", key = "#id")
-    public Product getProductById(String id) {
-        return findProductOrThrow(id);
+    public ProductResponseDTO getProductById(String id) {
+        return mapToDTO(findProductOrThrow(id));
     }
 
     private Product findProductOrThrow(String id) {
@@ -68,5 +74,16 @@ public class ProductService {
                 .attributes(dto.attributes())
                 .active(true)
                 .build();
+    }
+
+    private ProductResponseDTO mapToDTO(Product product) {
+        return new ProductResponseDTO(
+                product.getId(),
+                product.getName(),
+                product.getSku(),
+                product.getPrice(),
+                product.getAttributes(),
+                product.getActive()
+        );
     }
 }
