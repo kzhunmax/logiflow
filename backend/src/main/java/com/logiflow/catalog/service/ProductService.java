@@ -4,20 +4,24 @@ import com.logiflow.catalog.dto.ProductRequestDTO;
 import com.logiflow.catalog.dto.ProductResponseDTO;
 import com.logiflow.catalog.model.Product;
 import com.logiflow.catalog.repository.ProductRepository;
+import com.logiflow.shared.event.ProductCreatedEvent;
 import com.logiflow.shared.exception.ProductNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public Page<ProductResponseDTO> getAllProducts(Pageable pageable, String search) {
         Page<Product> products;
@@ -29,13 +33,16 @@ public class ProductService {
         return products.map(this::mapToDTO);
     }
 
+    @Transactional
     @CachePut(value = "products", key = "#result.id")
     public ProductResponseDTO createProduct(ProductRequestDTO dto) {
         Product product = mapToEntity(dto);
         Product savedProduct = productRepository.save(product);
+        eventPublisher.publishEvent(new ProductCreatedEvent(savedProduct.getId(), savedProduct.getSku()));
         return mapToDTO(savedProduct);
     }
 
+    @Transactional
     @CachePut(value = "products", key = "#id")
     public ProductResponseDTO updateProduct(String id, ProductRequestDTO dto) {
         Product product = findProductOrThrow(id);
@@ -49,6 +56,7 @@ public class ProductService {
         return mapToDTO(savedProduct);
     }
 
+    @Transactional
     @CacheEvict(value = "products", key = "#id")
     public void deleteProduct(String id) {
         Product product = findProductOrThrow(id);
