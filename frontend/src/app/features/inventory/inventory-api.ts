@@ -9,7 +9,7 @@ import {StockAdjustmentRequest} from '@features/inventory/stock-adjustment/stock
 })
 export class InventoryApi {
   private http = inject(HttpClient)
-  private readonly apiUrl = 'api/inventory'
+  private readonly apiUrl = 'api/v1/inventory'
 
   getInventory(sku: string): Observable<Inventory> {
     return this.http.get<Inventory>(`${this.apiUrl}/${sku}`);

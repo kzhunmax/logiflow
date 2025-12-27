@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/catalog/products")
+@RequestMapping("/api/v1/catalog/products")
 @RequiredArgsConstructor
 @Tag(name = "Products", description = "Operations for managing catalog products")
 public class CatalogController {

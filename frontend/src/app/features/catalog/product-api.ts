@@ -10,7 +10,7 @@ import {Page} from '@core/models/page';
 
 export class ProductApi {
   private http = inject(HttpClient);
-  private readonly apiUrl = 'api/catalog/products';
+  private readonly apiUrl = 'api/v1/catalog/products';
 
   getProducts(page: number, size: number, search: string = ''): Observable<Page<Product>> {
     let params = new HttpParams()
