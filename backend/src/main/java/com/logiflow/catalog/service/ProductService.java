@@ -5,6 +5,9 @@ import com.logiflow.catalog.model.Product;
 import com.logiflow.catalog.repository.ProductRepository;
 import com.logiflow.shared.exception.ProductNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,13 +25,15 @@ public class ProductService {
         return productRepository.findByActiveTrue(pageable);
     }
 
+    @CachePut(value = "products", key = "#result.id")
     public Product createProduct(ProductRequestDTO dto) {
         Product product = mapToEntity(dto);
         return productRepository.save(product);
     }
 
+    @CachePut(value = "products", key = "#id")
     public Product updateProduct(String id, ProductRequestDTO dto) {
-        Product product = getProductById(id);
+        Product product = findProductOrThrow(id);
 
         product.setName(dto.name());
         product.setSku(dto.sku());
@@ -38,13 +43,19 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+    @CacheEvict(value = "products", key = "#id")
     public void deleteProduct(String id) {
-        Product product = getProductById(id);
+        Product product = findProductOrThrow(id);
         product.setActive(false);
         productRepository.save(product);
     }
 
+    @Cacheable(value = "products", key = "#id")
     public Product getProductById(String id) {
+        return findProductOrThrow(id);
+    }
+
+    private Product findProductOrThrow(String id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
     }

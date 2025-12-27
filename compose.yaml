@@ -7,11 +7,14 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_MONGODB_URI: ${MONGO_DB_URI}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
     ports:
       - "8080:8080"
     depends_on:
       - postgres
       - mongodb
+      - redis
     networks:
       - logiflow-network
 
@@ -44,6 +47,14 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
+    networks:
+      - logiflow-network
+
+  redis:
+    image: redis:8.2.2-alpine
+    container_name: logiflow-redis
+    ports:
+      - "6379:6379"
     networks:
       - logiflow-network
 
