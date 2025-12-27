@@ -37,6 +37,11 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), null);
     }
 
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<@NonNull ErrorResponse> handleProductNotFoundException(ProductNotFoundException ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), null);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<@NonNull ErrorResponse> handleGenericException(Exception ex) {
         log.error("Unexpected error occurred", ex);
