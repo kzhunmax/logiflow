@@ -10,13 +10,16 @@ export const useProductStore = defineStore('product', () => {
   const totalPages = ref(1)
   const totalItems = ref(0)
   const pageSize = ref(10)
+  const searchQuery = ref('')
 
-  async function fetchProducts(page = 1) {
+  async function fetchProducts(page = 1, search = searchQuery.value) {
     loading.value = true
     error.value = null
+    searchQuery.value = search
+
     try {
       const response = await api.get('/catalog/products', {
-        params: {page: page - 1, size: pageSize.value}
+        params: {page: page - 1, size: pageSize.value, search: search || undefined}
       })
       products.value = response.data.content || response.data
       totalPages.value = response.data.totalPages || 1
@@ -28,5 +31,5 @@ export const useProductStore = defineStore('product', () => {
       loading.value = false
     }
   }
-  return { products, loading, error, currentPage, totalPages, totalItems , fetchProducts }
+  return { products, loading, error, currentPage, totalPages, totalItems, searchQuery , fetchProducts }
 })
