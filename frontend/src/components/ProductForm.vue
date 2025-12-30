@@ -218,37 +218,35 @@ function handleSubmit() {
 .card {
   width: 100%;
   max-width: 48rem;
-  background: #fff;
+  background: var(--color-white);
   border-radius: 0.75rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   overflow: hidden;
 }
 
 .card-header {
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(248, 250, 252, 0.5);
+  background: var(--color-background);
 }
 
 .card-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #0f172a;
-  margin: 0;
 }
 
 .card-subtitle {
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--color-text-muted);
   margin-top: 0.25rem;
 }
 
 .close-btn {
-  color: #94a3b8;
+  color: var(--color-text-muted);
   background: none;
   border: none;
   font-size: 1.5rem;
@@ -258,7 +256,7 @@ function handleSubmit() {
 }
 
 .close-btn:hover {
-  color: #475569;
+  color: var(--color-dark-hover);
 }
 
 .close-btn svg {
@@ -279,7 +277,7 @@ function handleSubmit() {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   font-weight: 700;
   margin-bottom: 1rem;
 }
@@ -293,7 +291,7 @@ function handleSubmit() {
 
 .section-subtitle {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   margin-top: 0.25rem;
 }
 
@@ -318,30 +316,28 @@ function handleSubmit() {
 .form-label {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #334155;
 }
 
 .form-input {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
   font-size: 0.875rem;
-  color: #334155;
   transition: border-color 0.15s;
 }
 
 .form-input::placeholder {
-  color: #94a3b8;
+  color: var(--color-text-muted);
 }
 
 .form-input:hover {
-  border-color: #94a3b8;
+  border-color: var(--color-text-secondary);
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
@@ -354,7 +350,7 @@ function handleSubmit() {
   left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #94a3b8;
+  color: var(--color-text-muted);
 }
 
 .input-icon svg {
@@ -368,7 +364,7 @@ function handleSubmit() {
   left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #64748b;
+  color: var(--color-text-muted);
   font-weight: 600;
 }
 
@@ -391,12 +387,12 @@ function handleSubmit() {
 
 .divider {
   border: none;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--color-border);
   margin: 2rem 0;
 }
 
 .add-attr-btn {
-  color: #2563eb;
+  color: var(--color-primary);
   background: none;
   border: 1px solid transparent;
   padding: 0.5rem 0.75rem;
@@ -422,9 +418,9 @@ function handleSubmit() {
 }
 
 .attributes-container {
-  background: #f8fafc;
+  background: var(--color-background);
   border-radius: 0.5rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -448,18 +444,18 @@ function handleSubmit() {
 .attribute-input {
   width: 100%;
   padding: 0.625rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-border);
   border-radius: 0.375rem;
   font-size: 0.875rem;
 }
 
 .attribute-input:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: var(--color-primary);
 }
 
 .attribute-arrow {
-  color: #cbd5e1;
+  color: var(--color-text-muted);
   font-size: 1.125rem;
 }
 
@@ -498,8 +494,8 @@ function handleSubmit() {
 
 .card-footer {
   padding: 1.25rem 2rem;
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
+  background: var(--color-background);
+  border-top: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -511,7 +507,7 @@ function handleSubmit() {
   padding: 0.625rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #475569;
+  color: var(--color-text-muted);
   background: none;
   border: none;
   border-radius: 0.5rem;
@@ -520,16 +516,16 @@ function handleSubmit() {
 }
 
 .cancel-btn:hover {
-  color: #1e293b;
-  background: #e2e8f0;
+  color: var(--color-text);
+  background: var(--color-border);
 }
 
 .submit-btn {
   padding: 0.625rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #fff;
-  background: #2563eb;
+  color: var(--color-white);
+  background: var(--color-primary);
   border: none;
   border-radius: 0.5rem;
   box-shadow: 0 1px 2px rgba(37, 99, 235, 0.3);
