@@ -18,7 +18,7 @@ function handleSubmit(product) {
 </script>
 
 <template>
-  <ProductForm @product-submit="handleSubmit" :loading="productStore.loading"/>
+  <ProductForm @product-submit="handleSubmit" @cancel="router.push('/')" :loading="productStore.loading"/>
 </template>
 
 <style scoped>
