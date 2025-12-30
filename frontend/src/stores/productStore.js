@@ -31,5 +31,19 @@ export const useProductStore = defineStore('product', () => {
       loading.value = false
     }
   }
-  return { products, loading, error, currentPage, totalPages, totalItems, searchQuery , fetchProducts }
+
+  async function createProduct(productData) {
+    loading.value = true
+    error.value = null
+
+    try {
+      await api.post(`/catalog/products`, productData)
+    } catch (err) {
+      error.value = err.message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { products, loading, error, currentPage, totalPages, totalItems, searchQuery , fetchProducts, createProduct }
 })

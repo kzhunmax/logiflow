@@ -53,6 +53,9 @@ onMounted(() => {
         class="search-input"
       />
     </div>
+    <button>
+      <router-link to="products/create">Create New</router-link>
+    </button>
     <div v-if="productStore.error" class="error">{{ productStore.error }}</div>
     <DataTable
       :columns="columns"
