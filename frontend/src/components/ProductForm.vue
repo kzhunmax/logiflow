@@ -476,7 +476,7 @@ function handleSubmit() {
 }
 
 .remove-attr-btn:hover {
-  color: #dc2626;
+  color: var(--color-text-error);
   background: rgba(254, 202, 202, 0.5);
 }
 

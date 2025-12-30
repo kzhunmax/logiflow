@@ -64,40 +64,68 @@ function goToPage(page) {
 </template>
 
 <style scoped>
+.data-table-container {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;
+  font-size: 0.875rem;
+  text-align: left;
 }
 
-.data-table th,
-.data-table td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
+.data-table thead {
+  background-color: var(--color-background);
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .data-table th {
-  background: #f5f5f5;
-  font-weight: 600;
+  padding: 1rem 1.5rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.data-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  color: #0f172a;
+  vertical-align: middle;
+}
+
+.data-table tr.clickable {
+  transition: background-color 0.2s;
 }
 
 .data-table tr.clickable:hover {
-  background: #f9f9f9;
+  background-color: var(--color-background);
   cursor: pointer;
 }
 
 .loading,
 .empty {
-  text-align: center;
-  padding: 2rem;
-  color: #666;
+  text-align: start;
+  padding: 3rem;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
 }
 
 .pagination {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 0;
+  padding: 1rem 1.5rem;
+  background-color: var(--color-background);
+  border-top: 1px solid var(--color-border);
+  font-size: 0.75rem;
+  color: #64748b;
 }
 
 .pagination-controls {
@@ -107,14 +135,23 @@ function goToPage(page) {
 }
 
 .pagination button {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #ddd;
-  background: #fff;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-white);
+  border-radius: 0.25rem;
+  color: #64748b;
   cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: var(--color-border);
+  color: var(--color-text);
 }
 
 .pagination button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  background-color: var(--color-background);
 }
 </style>
