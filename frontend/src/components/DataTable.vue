@@ -19,7 +19,7 @@ function goToPage(page) {
 </script>
 
 <template>
-  <div class="data-table-container">
+  <main class="data-table-container">
     <table class="data-table">
       <thead>
       <tr>
@@ -60,7 +60,7 @@ function goToPage(page) {
       </div>
     </div>
 
-  </div>
+  </main>
 </template>
 
 <style scoped>

@@ -11,6 +11,7 @@ export const useProductStore = defineStore('product', () => {
   const totalItems = ref(0)
   const pageSize = ref(10)
   const searchQuery = ref('')
+  const product = ref(null)
 
   async function fetchProducts(page = 1, search = searchQuery.value) {
     loading.value = true
@@ -45,5 +46,45 @@ export const useProductStore = defineStore('product', () => {
     }
   }
 
-  return { products, loading, error, currentPage, totalPages, totalItems, searchQuery , fetchProducts, createProduct }
+  async function fetchProductById(productId) {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await api.get(`/catalog/products/${productId}`)
+      product.value = response.data
+    } catch (err) {
+      error.value = err.message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function updateProduct(productId, productData) {
+    loading.value = true
+    error.value = null
+
+    try {
+      await api.put(`/catalog/products/${productId}`, productData)
+    } catch (err) {
+      error.value = err.message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function deleteProduct(productId) {
+    loading.value = true
+    error.value = null
+
+    try {
+      await api.delete(`/catalog/products/${productId}`)
+    } catch (err) {
+      error.value = err.message
+    } finally {
+      loading.value = false
+    }
+  }
+
+  return { products, loading, error, currentPage, totalPages, totalItems, searchQuery, product, fetchProducts, createProduct, fetchProductById, updateProduct, deleteProduct}
 })

@@ -11,7 +11,7 @@ const routes = [
     component: MainLayout,
     children: [
       {path: '', component: ProductListView},
-      {path: '/catalog', component: ProductDetailView},
+      {path: '/product/:id', component: ProductDetailView},
       {path: '/products/create', component: ProductCreateView},
       {path: '/inventory', component: InventoryView},
     ]
