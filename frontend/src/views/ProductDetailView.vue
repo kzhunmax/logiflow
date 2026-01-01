@@ -142,7 +142,7 @@ async function handleDelete() {
             :sku="productStore.product.sku"
           />
 
-          <div v-if="productStore.product.attributes">
+          <div v-if="productStore.product.attributes && Object.keys(productStore.product.attributes).length > 0">
             <h3 class="section-title">Product Attributes</h3>
             <div class="attributes-table-container">
               <table class="attributes-table">
