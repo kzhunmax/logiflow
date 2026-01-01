@@ -12,9 +12,9 @@ let debounceTimer = null
 
 const columns = [
   {key: 'name', label: 'Name'},
+  {key: 'sku', label: 'SKU'},
   {key: 'price', label: 'Price'},
-  {key: 'quantity', label: 'Stock'},
-  {key: 'active', label: 'Status'},
+  {key: 'category', label: 'Category'},
 ]
 
 function handleSearch(value) {
@@ -87,10 +87,8 @@ onMounted(() => {
         ${{ item.price?.toFixed(2) }}
       </template>
 
-      <template #active="{ item }">
-        <span :class="['badge', item.active ? 'badge-green' : 'badge-gray']">
-          {{ item.active ? 'In Stock' : 'Inactive' }}
-        </span>
+      <template #category="{ item }">
+        {{ item.category?.name || '-' }}
       </template>
     </DataTable>
 
@@ -198,14 +196,4 @@ onMounted(() => {
   margin-bottom: 1.5rem;
   font-size: 0.875rem;
 }
-
-.badge {
-  display: inline-flex;
-  padding: 0.125rem 0.625rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-.badge-green { background-color: #dcfce7; color: #166534; }
-.badge-gray  { background-color: #f1f5f9; color: #475569; }
 </style>
