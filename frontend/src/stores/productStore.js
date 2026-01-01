@@ -22,12 +22,13 @@ export const useProductStore = defineStore('product', () => {
       const response = await api.get('/catalog/products', {
         params: {page: page - 1, size: pageSize.value, search: search || undefined}
       })
-      products.value = response.data.content || response.data
-      totalPages.value = response.data.totalPages || 1
-      totalItems.value = response.data.totalElements || products.value.length
+
+      products.value = response.data.content
+      totalPages.value = response.data.page.totalPages
+      totalItems.value = response.data.page.totalElements
       currentPage.value = page
     } catch (err) {
-      error.value = err.message
+      error.value = err.response?.data?.message || 'Failed to load products.'
     } finally {
       loading.value = false
     }
