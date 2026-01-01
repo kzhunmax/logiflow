@@ -3,6 +3,7 @@
 import {useRoute, useRouter} from "vue-router";
 import {useProductStore} from "@/stores/productStore.js";
 import {onMounted, ref} from "vue";
+import InventoryManager from "@/components/InventoryManager.vue";
 
 const route = useRoute()
 const router = useRouter()
@@ -99,7 +100,9 @@ async function handleDelete() {
               <h1 class="product-title">
                 {{ productStore.product.name }}
                 <span
-                  :class="productStore.product.active ? 'status-badge-active' : 'status-badge-inactive'">{{ productStore.product.active ? 'In Stock' : 'Inactive' }}</span>
+                  :class="productStore.product.active ? 'status-badge-active' : 'status-badge-inactive'">{{
+                    productStore.product.active ? 'In Stock' : 'Inactive'
+                  }}</span>
               </h1>
               <p class="sku-text">SKU: {{ productStore.product.sku }}</p>
             </div>
@@ -133,6 +136,11 @@ async function handleDelete() {
               </div>
             </div>
           </div>
+
+          <InventoryManager
+            v-if="productStore.product?.sku"
+            :sku="productStore.product.sku"
+          />
 
           <div v-if="productStore.product.attributes">
             <h3 class="section-title">Product Attributes</h3>
