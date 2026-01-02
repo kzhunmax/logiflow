@@ -4,6 +4,7 @@ import com.logiflow.catalog.dto.ProductRequestDTO;
 import com.logiflow.catalog.dto.ProductResponseDTO;
 import com.logiflow.catalog.model.Product;
 import com.logiflow.catalog.repository.ProductRepository;
+import com.logiflow.shared.event.ProductCreatedEvent;
 import com.logiflow.shared.exception.ProductNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,6 +16,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ProductService Unit Tests")
@@ -48,6 +51,9 @@ class ProductServiceTest {
     private static final Map<String, Object> UPDATED_ATTRIBUTES = Map.of("color", "blue");
 
     @Mock
+    private ApplicationEventPublisher eventPublisher;
+
+    @Mock
     private ProductRepository productRepository;
 
     @InjectMocks
@@ -55,6 +61,9 @@ class ProductServiceTest {
 
     @Captor
     private ArgumentCaptor<Product> productCaptor;
+
+    @Captor
+    private ArgumentCaptor<ProductCreatedEvent> eventCaptor;
 
     private Product activeProduct;
 
@@ -208,6 +217,11 @@ class ProductServiceTest {
             assertThat(capturedProduct.getPrice()).isEqualTo(PRODUCT_PRICE);
             assertThat(capturedProduct.getAttributes()).isEqualTo(PRODUCT_ATTRIBUTES);
             assertThat(capturedProduct.getActive()).isTrue();
+
+            then(eventPublisher).should(times(1)).publishEvent(eventCaptor.capture());
+            ProductCreatedEvent captureEvent = eventCaptor.getValue();
+            assertThat(captureEvent.productId()).isEqualTo(PRODUCT_ID);
+            assertThat(captureEvent.sku()).isEqualTo(PRODUCT_SKU);
 
             assertThat(result).isNotNull();
             assertThat(result.id()).isEqualTo(PRODUCT_ID);
