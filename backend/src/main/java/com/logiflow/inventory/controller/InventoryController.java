@@ -13,6 +13,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +25,17 @@ import org.springframework.web.bind.annotation.*;
 public class InventoryController {
 
     private final InventoryService inventoryService;
+
+    @GetMapping
+    @Operation(summary = "Get all inventories", description = "Returns a paginated list of inventories")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved inventories",
+                    content = @Content(schema = @Schema(implementation = Page.class)))
+    })
+    public Page<InventoryResponseDTO> getAllInventories(
+            @Parameter(description = "Pageable parameters (page, size, sort)") Pageable pageable) {
+        return inventoryService.getAllInventories(pageable);
+    }
 
     @GetMapping("/{sku}")
     @Operation(summary = "Get inventory by SKU", description = "Retrieves the current available inventory for a product by its SKU")
