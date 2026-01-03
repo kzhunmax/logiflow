@@ -36,12 +36,7 @@ public class InventoryService {
             log.info("Inventory already exists for SKU: {}", sku);
             return;
         }
-        Inventory newInventory = Inventory.builder()
-                .sku(sku)
-                .quantity(0)
-                .reserved(0)
-                .build();
-        inventoryRepository.save(newInventory);
+        createInventory(sku, 0);
         log.info("Initialized inventory for SKU: {}", sku);
     }
 
@@ -61,12 +56,7 @@ public class InventoryService {
             inventory.setQuantity(inventory.getQuantity() + amount);
             inventoryRepository.save(inventory);
         } else {
-            Inventory newInventory = Inventory.builder()
-                    .sku(sku)
-                    .quantity(amount)
-                    .reserved(0)
-                    .build();
-            inventoryRepository.save(newInventory);
+            createInventory(sku, amount);
         }
     }
 
@@ -87,5 +77,14 @@ public class InventoryService {
                 .orElseThrow(() -> new InventoryNotFoundException(sku));
         int available = inventory.getQuantity() - inventory.getReserved();
         return new InventoryResponseDTO(inventory.getSku(), available);
+    }
+
+    private void createInventory(String sku, Integer quantity) {
+        Inventory newInventory = Inventory.builder()
+                .sku(sku)
+                .quantity(quantity)
+                .reserved(0)
+                .build();
+        inventoryRepository.save(newInventory);
     }
 }
