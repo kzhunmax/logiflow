@@ -85,54 +85,54 @@ async function handleDelete() {
 </script>
 
 <template>
-  <main>
+  <main class="grow p-6 md:p-10 flex justify-center items-start">
     <div v-if="productStore.loading" class="text-center p-10">Loading...</div>
     <div v-else-if="productStore.error" class="text-red-500 p-10">{{ productStore.error }}</div>
 
-    <div v-else-if="productStore.product" class="product-card">
-      <div class="card-header">
-        <div class="header-left">
-          <div class="product-image-placeholder">
+    <div v-else-if="productStore.product" class="w-full max-w-4xl bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative min-h-125">
+      <div class="p-6 px-8 border-b border-slate-200 flex justify-between items-start bg-slate-50">
+        <div class="flex items-center gap-4">
+          <div class="w-16 h-16 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-300 shadow-sm">
             <span>IMG</span>
           </div>
           <div>
             <div v-if="!isEditing" id="view-header">
-              <h1 class="product-title">
+              <h1 class="text-2xl font-bold flex items-center gap-3">
                 {{ productStore.product.name }}
                 <span
-                  :class="productStore.product.active ? 'status-badge-active' : 'status-badge-inactive'">{{
+                  :class="productStore.product.active ? 'py-0.5 px-2.5 rounded-full bg-green-100 text-green-700 text-xs font-medium border border-green-200' : 'py-0.5 px-2.5 rounded-full bg-slate-100 text-slate-600 text-xs font-medium border border-slate-200'">{{
                     productStore.product.active ? 'In Stock' : 'Inactive'
                   }}</span>
               </h1>
-              <p class="sku-text">SKU: {{ productStore.product.sku }}</p>
+              <p class="text-sm text-slate-500 mt-1 font-mono">SKU: {{ productStore.product.sku }}</p>
             </div>
             <div v-else id="edit-header">
-              <h1 class="edit-title">Edit Product</h1>
-              <p class="edit-subtitle">Update product details and attributes.</p>
+              <h1 class="text-2xl font-bold">Edit Product</h1>
+              <p class="text-sm text-slate-500 mt-1">Update product details and attributes.</p>
             </div>
           </div>
         </div>
 
-        <div class="actions-container">
-          <div v-if="!isEditing" id="view-actions" class="actions-container">
-            <button @click="handleDelete" class="btn-delete">Delete</button>
-            <button @click="enableEditMode" class="btn-primary">Edit Product</button>
+        <div class="flex gap-2">
+          <div v-if="!isEditing" id="view-actions" class="flex gap-2">
+            <button @click="handleDelete" class="py-2 px-4 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm font-medium cursor-pointer transition-all hover:bg-slate-50 hover:text-red-700 hover:border-red-200">Delete</button>
+            <button @click="enableEditMode" class="py-2 px-4 bg-blue-600 text-white rounded-lg text-sm font-medium shadow-sm border-none cursor-pointer transition-all hover:bg-blue-700 active:scale-95">Edit Product</button>
           </div>
-          <div v-else id="edit-actions" class="actions-container">
-            <button @click="cancelEdit" class="btn-cancel">Cancel</button>
-            <button @click="handleUpdate" class="btn-primary">Save Changes</button>
+          <div v-else id="edit-actions" class="flex gap-2">
+            <button @click="cancelEdit" class="py-2 px-4 bg-slate-50 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium cursor-pointer transition-all hover:bg-slate-200">Cancel</button>
+            <button @click="handleUpdate" class="py-2 px-4 bg-blue-600 text-white rounded-lg text-sm font-medium shadow-sm border-none cursor-pointer transition-all hover:bg-blue-700 active:scale-95">Save Changes</button>
           </div>
         </div>
       </div>
 
-      <div class="card-body">
-        <div v-if="!isEditing" id="view-mode" class="content-section section-spacing">
+      <div class="p-8">
+        <div v-if="!isEditing" id="view-mode" class="flex flex-col gap-8 animate-fade-in">
           <div>
-            <h3 class="section-title">General Information</h3>
-            <div class="info-grid">
+            <h3 class="text-xs uppercase tracking-wide text-slate-400 font-bold mb-4 border-b border-slate-200 pb-2">General Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>
-                <p class="info-label">Base Price</p>
-                <p class="info-value">${{ productStore.product.price }}</p>
+                <p class="text-sm text-slate-500 mb-1">Base Price</p>
+                <p class="text-xl font-semibold">${{ productStore.product.price }}</p>
               </div>
             </div>
           </div>
@@ -143,13 +143,13 @@ async function handleDelete() {
           />
 
           <div v-if="productStore.product.attributes && Object.keys(productStore.product.attributes).length > 0">
-            <h3 class="section-title">Product Attributes</h3>
-            <div class="attributes-table-container">
-              <table class="attributes-table">
+            <h3 class="text-xs uppercase tracking-wide text-slate-400 font-bold mb-4 border-b border-slate-200 pb-2">Product Attributes</h3>
+            <div class="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+              <table class="w-full text-sm text-left border-collapse">
                 <tbody>
-                <tr v-for="(value, key) in productStore.product.attributes" :key="key">
-                  <td class="attr-key">{{ key }}</td>
-                  <td class="attr-value">{{ value }}</td>
+                <tr v-for="(value, key) in productStore.product.attributes" :key="key" class="border-b border-slate-200 last:border-b-0 transition-colors hover:bg-white">
+                  <td class="py-3 px-4 font-medium text-slate-600 w-1/3 border-r border-slate-200 bg-slate-50/50">{{ key }}</td>
+                  <td class="py-3 px-4">{{ value }}</td>
                 </tr>
                 </tbody>
               </table>
@@ -157,31 +157,29 @@ async function handleDelete() {
           </div>
         </div>
 
-        <div v-else id="edit-mode" class="content-section section-spacing">
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">Product Name</label>
-              <input v-model="editingForm.name" type="text" class="form-input"/>
+        <div v-else id="edit-mode" class="flex flex-col gap-8 animate-fade-in">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium text-slate-600">Product Name</label>
+              <input v-model="editingForm.name" type="text" class="w-full py-2.5 px-3 border border-slate-300 rounded-lg text-sm focus:outline-2 focus:outline-blue-600 focus:-outline-offset-1"/>
             </div>
-            <div class="form-group">
-              <label class="form-label">SKU</label>
-              <input v-model="editingForm.sku" type="text" class="form-input form-input"/>
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium text-slate-600">SKU</label>
+              <input v-model="editingForm.sku" type="text" class="w-full py-2.5 px-3 border border-slate-300 rounded-lg text-sm focus:outline-2 focus:outline-blue-600 focus:-outline-offset-1"/>
             </div>
-            <div class="form-group">
-              <label class="form-label">Price ($)</label>
-              <input v-model="editingForm.price" type="number" step="0.01" class="form-input"/>
+            <div class="flex flex-col gap-2">
+              <label class="text-sm font-medium text-slate-600">Price ($)</label>
+              <input v-model="editingForm.price" type="number" step="0.01" class="w-full py-2.5 px-3 border border-slate-300 rounded-lg text-sm focus:outline-2 focus:outline-blue-600 focus:-outline-offset-1"/>
             </div>
           </div>
 
-          <hr class="divider">
+          <hr class="border-t border-slate-200">
 
           <div>
-            <div class="attributes-header">
-              <h3 class="section-title"
-                  style="margin-bottom: 0; border-bottom: none; padding-bottom: 0;">Manage
-                Attributes</h3>
-              <button type="button" @click="addAttributeRow" class="btn-add-attribute">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-xs uppercase tracking-wide text-slate-400 font-bold">Manage Attributes</h3>
+              <button type="button" @click="addAttributeRow" class="flex items-center gap-2 text-blue-600 text-xs font-bold py-1 px-2 rounded bg-transparent border-none cursor-pointer uppercase tracking-wide transition-colors hover:bg-violet-50">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="w-3 h-3 fill-current">
                   <path
                     d="M256 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 160-160 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l160 0 0 160c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160 160 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-160 0 0-160z"/>
                 </svg>
@@ -189,14 +187,13 @@ async function handleDelete() {
               </button>
             </div>
 
-            <div id="attributes-container" class="attributes-list">
-              <div v-for="(attr, index) in editingForm.attributes" :key="index"
-                   class="attribute-row">
-                <input v-model="attr.key" type="text" class="attr-input" placeholder="Key"/>
-                <span class="attr-separator">:</span>
-                <input v-model="attr.value" type="text" class="attr-input" placeholder="Value"/>
-                <button type="button" @click="removeAttributeRow(index)" class="btn-remove-attr">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+            <div id="attributes-container" class="flex flex-col gap-3">
+              <div v-for="(attr, index) in editingForm.attributes" :key="index" class="flex gap-2 items-center">
+                <input v-model="attr.key" type="text" class="flex-1 py-2 px-3 border border-slate-200 rounded-md text-sm" placeholder="Key"/>
+                <span class="text-slate-200">:</span>
+                <input v-model="attr.value" type="text" class="flex-1 py-2 px-3 border border-slate-200 rounded-md text-sm" placeholder="Value"/>
+                <button type="button" @click="removeAttributeRow(index)" class="w-8 h-8 p-2 flex items-center justify-center text-red-400 bg-transparent border-none rounded-full cursor-pointer transition-all hover:text-red-700 hover:bg-red-50">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-4 h-4 fill-current">
                     <path
                       d="M232.7 69.9L224 96L128 96C110.3 96 96 110.3 96 128C96 145.7 110.3 160 128 160L512 160C529.7 160 544 145.7 544 128C544 110.3 529.7 96 512 96L416 96L407.3 69.9C402.9 56.8 390.7 48 376.9 48L263.1 48C249.3 48 237.1 56.8 232.7 69.9zM512 208L128 208L149.1 531.1C150.7 556.4 171.7 576 197 576L443 576C468.3 576 489.3 556.4 490.9 531.1L512 208z"/>
                   </svg>
@@ -212,393 +209,6 @@ async function handleDelete() {
 
 
 <style scoped>
-main {
-  flex-grow: 1;
-  padding: 1.5rem;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-}
-
-@media (min-width: 768px) {
-  main {
-    padding: 2.5rem;
-  }
-}
-
-.text-center {
-  text-align: center;
-}
-
-.p-10 {
-  padding: 2.5rem;
-}
-
-.text-red-500 {
-  color: #ef4444;
-}
-
-.product-card {
-  width: 100%;
-  max-width: 56rem;
-  background-color: var(--color-white);
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  border: 1px solid var(--color-border);
-  overflow: hidden;
-  position: relative;
-  min-height: 500px;
-}
-
-.card-header {
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid var(--color-border);
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  background-color: var(--color-background);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.product-image-placeholder {
-  width: 4rem;
-  height: 4rem;
-  background-color: var(--color-white);
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #cbd5e1;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-}
-
-.product-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.status-badge-active {
-  padding: 0.125rem 0.625rem;
-  border-radius: 9999px;
-  background-color: #dcfce7;
-  color: #15803d;
-  font-size: 0.75rem;
-  font-weight: 500;
-  border: 1px solid #bbf7d0;
-}
-
-.status-badge-inactive {
-  padding: 0.125rem 0.625rem;
-  border-radius: 9999px;
-  background-color: #f1f5f9;
-  color: #475569;
-  font-size: 0.75rem;
-  font-weight: 500;
-  border: 1px solid var(--color-border);
-}
-
-.sku-text {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  margin-top: 0.25rem;
-  font-family: monospace;
-}
-
-.edit-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.edit-subtitle {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  margin-top: 0.25rem;
-}
-
-.actions-container {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.btn-delete {
-  padding: 0.5rem 1rem;
-  background-color: var(--color-white);
-  border: 1px solid var(--color-border);
-  color: var(--color-dark-hover);
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.btn-delete:hover {
-  background-color: var(--color-background);
-  color: var(--color-text-error);
-  border-color: #fecaca;
-}
-
-.btn-primary {
-  padding: 0.5rem 1rem;
-  background-color: var(--color-primary);
-  color: var(--color-white);
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.btn-primary:hover {
-  background-color: #1d4ed8;
-}
-
-.btn-primary:active {
-  transform: scale(0.95);
-}
-
-.btn-cancel {
-  padding: 0.5rem 1rem;
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
-  color: var(--color-dark-hover);
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.btn-cancel:hover {
-  background-color: var(--color-border);
-}
-
-.card-body {
-  padding: 2rem;
-}
-
-.content-section {
-  animation: fadeIn 0.3s ease;
-}
-
-.section-spacing {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.section-title {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-secondary);
-  font-weight: 700;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: 0.5rem;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-}
-
-@media (min-width: 768px) {
-  .info-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.info-label {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  margin-bottom: 0.25rem;
-}
-
-.info-value {
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.attributes-table-container {
-  background-color: var(--color-background);
-  border-radius: 0.5rem;
-  border: 1px solid var(--color-border);
-  overflow: hidden;
-}
-
-.attributes-table {
-  width: 100%;
-  font-size: 0.875rem;
-  text-align: left;
-  border-collapse: collapse;
-}
-
-.attributes-table tbody tr {
-  border-bottom: 1px solid var(--color-border);
-  transition: background-color 0.15s;
-}
-
-.attributes-table tbody tr:last-child {
-  border-bottom: none;
-}
-
-.attributes-table tbody tr:hover {
-  background-color: var(--color-white);
-}
-
-.attr-key {
-  padding: 0.75rem 1rem;
-  font-weight: 500;
-  color: var(--color-dark-hover);
-  width: 33.333%;
-  border-right: 1px solid var(--color-border);
-  background-color: rgba(248, 250, 252, 0.5);
-}
-
-.attr-value {
-  padding: 0.75rem 1rem;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-@media (min-width: 768px) {
-  .form-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--color-dark-hover);
-}
-
-.form-input {
-  width: 100%;
-  padding: 0.625rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  box-sizing: border-box;
-}
-
-.form-input:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -1px;
-}
-
-.divider {
-  border: none;
-  border-top: 1px solid var(--color-border);
-}
-
-.attributes-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.btn-add-attribute {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--color-primary);
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  transition: background-color 0.15s;
-}
-
-.btn-add-attribute:hover {
-  background-color: #f5f3ff;
-}
-
-.btn-add-attribute svg {
-  width: 0.75rem;
-  height: 0.75rem;
-  fill: currentColor;
-}
-
-.attributes-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.attribute-row {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.attr-input {
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-}
-
-.attr-separator {
-  color: var(--color-border);
-}
-
-.btn-remove-attr {
-  width: 2rem;
-  height: 2rem;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #f87171;
-  background: none;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.btn-remove-attr:hover {
-  color: var(--color-text-error);
-  background-color: #fef2f2;
-}
-
-.btn-remove-attr svg {
-  width: 1rem;
-  height: 1rem;
-  fill: currentColor;
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -608,7 +218,7 @@ main {
   }
 }
 
-.fade-in {
+.animate-fade-in {
   animation: fadeIn 0.3s ease;
 }
 

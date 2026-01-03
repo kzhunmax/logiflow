@@ -1,16 +1,6 @@
-:root {
-  --color-primary: #2563eb;
-  --color-text: #0f172a;
-  --color-text-muted: #64748b;
-  --color-text-secondary: #94a3b8;
-  --color-border: #e2e8f0;
-  --color-background: #f8fafc;
-  --color-white: #ffffff;
-  --color-dark-hover: #475569;
-  --color-text-error: #b91c1c;
-}
+@import "tailwindcss";
 
 body {
-  background-color: var(--color-background);
-  color: var(--color-text);
+  @apply bg-slate-50 text-slate-900;
 }
+

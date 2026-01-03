@@ -45,42 +45,42 @@ async function handleAdjustment() {
 </script>
 
 <template>
-  <div class="inventory-manager">
-    <h3 class="section-title">Inventory Management</h3>
+  <div class="bg-slate-50 rounded-lg border border-slate-200 p-6">
+    <h3 class="text-xs uppercase tracking-wide text-slate-400 font-bold mb-4 border-b border-slate-200 pb-2">Inventory Management</h3>
 
-    <div v-if="store.loading && !store.stock" class="loading-state">
+    <div v-if="store.loading && !store.stock" class="text-center text-slate-500 p-4">
       Loading inventory...
     </div>
 
-    <div v-else class="inventory-content">
-      <div class="stock-display">
-        <p class="stock-label">Available Quantity</p>
-        <p class="stock-value" :class="{'low-stock': availableQuantity < 10}">
+    <div v-else class="flex flex-col gap-4">
+      <div class="bg-white border border-slate-200 rounded-lg p-4 text-center">
+        <p class="text-sm text-slate-500 mb-1">Available Quantity</p>
+        <p class="text-3xl font-bold" :class="availableQuantity < 10 ? 'text-red-700' : 'text-green-700'">
           {{ availableQuantity }}
         </p>
       </div>
 
-      <div v-if="store.error" class="error-message">
+      <div v-if="store.error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
         {{ store.error }}
       </div>
 
-      <div class="adjustment-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Operation</label>
-            <select v-model="operation" class="form-select">
+      <div class="flex flex-col gap-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium text-slate-600">Operation</label>
+            <select v-model="operation" class="w-full px-2.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-white h-10 appearance-none bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%23475569%22%20d%3D%22M6%208L1%203h10z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-position-[right_0.625rem_center] pr-8 cursor-pointer focus:outline-2 focus:outline-blue-600 focus:-outline-offset-1">
               <option value="ADD">Add Stock</option>
               <option value="REMOVE">Remove Stock</option>
             </select>
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Quantity</label>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium text-slate-600">Quantity</label>
             <input
               v-model.number="quantity"
               type="number"
               min="1"
-              class="form-input"
+              class="w-full px-2.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-white h-10 focus:outline-2 focus:outline-blue-600 focus:-outline-offset-1"
               placeholder="Enter quantity"
             />
           </div>
@@ -89,8 +89,8 @@ async function handleAdjustment() {
         <button
           @click="handleAdjustment"
           :disabled="store.loading || quantity <= 0"
-          class="btn-adjust"
-          :class="operation === 'ADD' ? 'btn-add' : 'btn-remove'"
+          class="px-4 py-3 rounded-lg text-sm font-semibold border-none cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          :class="operation === 'ADD' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-red-700 text-white hover:opacity-90'"
         >
           <span v-if="store.loading">Processing...</span>
           <span v-else>{{ operation === 'ADD' ? 'Add Stock' : 'Remove Stock' }}</span>
@@ -101,153 +101,6 @@ async function handleAdjustment() {
 </template>
 
 <style scoped>
-.inventory-manager {
-  background-color: var(--color-background);
-  border-radius: 0.5rem;
-  border: 1px solid var(--color-border);
-  padding: 1.5rem;
-}
 
-.section-title {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-secondary);
-  font-weight: 700;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: 0.5rem;
-}
-
-.loading-state {
-  text-align: center;
-  color: var(--color-text-muted);
-  padding: 1rem;
-}
-
-.inventory-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.stock-display {
-  background-color: var(--color-white);
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  padding: 1rem;
-  text-align: center;
-}
-
-.stock-label {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  margin-bottom: 0.25rem;
-}
-
-.stock-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #15803d;
-}
-
-.stock-value.low-stock {
-  color: var(--color-text-error);
-}
-
-.error-message {
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  color: var(--color-text-error);
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.adjustment-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--color-dark-hover);
-}
-
-.form-select,
-.form-input {
-  width: 100%;
-  padding: 0.625rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  box-sizing: border-box;
-  background-color: var(--color-white);
-  height: 2.5rem;
-}
-
-.form-select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23475569' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.625rem center;
-  padding-right: 2rem;
-  cursor: pointer;
-}
-
-.form-select:focus,
-.form-input:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -1px;
-}
-
-.btn-adjust {
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.btn-adjust:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-add {
-  background-color: var(--color-primary);
-  color: var(--color-white);
-}
-
-.btn-add:hover:not(:disabled) {
-  background-color: #1d4ed8;
-}
-
-.btn-remove {
-  background-color: var(--color-text-error);
-  color: var(--color-white);
-}
-
-.btn-remove:hover:not(:disabled) {
-  opacity: 0.9;
-}
 </style>
 
