@@ -4,6 +4,8 @@ import {useRoute, useRouter} from "vue-router";
 import {useProductStore} from "@/stores/productStore.js";
 import {onMounted, ref} from "vue";
 import InventoryManager from "@/components/InventoryManager.vue";
+import PlusIcon from "@/components/icons/PlusIcon.vue";
+import TrashIcon from "@/components/icons/TrashIcon.vue";
 
 const route = useRoute()
 const router = useRouter()
@@ -179,10 +181,7 @@ async function handleDelete() {
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-xs uppercase tracking-wide text-slate-400 font-bold">Manage Attributes</h3>
               <button type="button" @click="addAttributeRow" class="flex items-center gap-2 text-blue-600 text-xs font-bold py-1 px-2 rounded bg-transparent border-none cursor-pointer uppercase tracking-wide transition-colors hover:bg-violet-50">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="w-3 h-3 fill-current">
-                  <path
-                    d="M256 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 160-160 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l160 0 0 160c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160 160 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-160 0 0-160z"/>
-                </svg>
+                <PlusIcon class="w-3 h-3 fill-current"/>
                 Add New
               </button>
             </div>
@@ -193,10 +192,7 @@ async function handleDelete() {
                 <span class="text-slate-200">:</span>
                 <input v-model="attr.value" type="text" class="flex-1 py-2 px-3 border border-slate-200 rounded-md text-sm" placeholder="Value"/>
                 <button type="button" @click="removeAttributeRow(index)" class="w-8 h-8 p-2 flex items-center justify-center text-red-400 bg-transparent border-none rounded-full cursor-pointer transition-all hover:text-red-700 hover:bg-red-50">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="w-4 h-4 fill-current">
-                    <path
-                      d="M232.7 69.9L224 96L128 96C110.3 96 96 110.3 96 128C96 145.7 110.3 160 128 160L512 160C529.7 160 544 145.7 544 128C544 110.3 529.7 96 512 96L416 96L407.3 69.9C402.9 56.8 390.7 48 376.9 48L263.1 48C249.3 48 237.1 56.8 232.7 69.9zM512 208L128 208L149.1 531.1C150.7 556.4 171.7 576 197 576L443 576C468.3 576 489.3 556.4 490.9 531.1L512 208z"/>
-                  </svg>
+                  <TrashIcon class="w-4 h-4 fill-current"/>
                 </button>
               </div>
             </div>

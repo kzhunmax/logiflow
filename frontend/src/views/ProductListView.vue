@@ -3,6 +3,8 @@ import {useRouter} from "vue-router";
 import {useProductStore} from "@/stores/productStore.js";
 import {onMounted, ref, watch} from "vue";
 import DataTable from "@/components/DataTable.vue";
+import SearchIcon from "@/components/icons/SearchIcon.vue";
+import PlusIcon from "@/components/icons/PlusIcon.vue";
 
 const router = useRouter()
 const productStore = useProductStore()
@@ -53,7 +55,7 @@ onMounted(() => {
 
       <div class="flex gap-3 items-center">
         <div class="relative flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="absolute left-3 w-4 h-4 fill-slate-400 pointer-events-none"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376C296.3 401.1 253.9 416 208 416 93.1 416 0 322.9 0 208S93.1 0 208 0 416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/></svg>
+          <SearchIcon class="absolute left-3 w-4 h-4 fill-slate-400 pointer-events-none"/>
           <input
             v-model="searchInput"
             type="text"
@@ -62,14 +64,16 @@ onMounted(() => {
           />
         </div>
 
-        <router-link to="products/create" class="inline-flex items-center gap-2 py-2 px-4 bg-blue-600 text-white rounded-lg text-sm font-medium no-underline shadow-sm transition-colors hover:bg-blue-700">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="w-3.5 h-3.5 fill-current"><path d="M256 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 160-160 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l160 0 0 160c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160 160 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-160 0 0-160z"/></svg>
+        <router-link to="products/create"
+                     class="inline-flex items-center gap-2 py-2 px-4 bg-blue-600 text-white rounded-lg text-sm font-medium no-underline shadow-sm transition-colors hover:bg-blue-700">
+          <PlusIcon class="w-3.5 h-3.5 fill-current"/>
           Create New
         </router-link>
       </div>
     </div>
 
-    <div v-if="productStore.error" class="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg mb-6 text-sm">
+    <div v-if="productStore.error"
+         class="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg mb-6 text-sm">
       {{ productStore.error }}
     </div>
 

@@ -2,6 +2,7 @@
 
 import {useInventoryStore} from "@/stores/inventoryStore.js";
 import {computed, onMounted, ref} from "vue";
+import ChevronDownIcon from "@/components/icons/ChevronDownIcon.vue";
 
 const props = defineProps({
   sku: {type: String, required: true},
@@ -72,6 +73,7 @@ async function handleAdjustment() {
               <option value="ADD">Add Stock</option>
               <option value="REMOVE">Remove Stock</option>
             </select>
+            <ChevronDownIcon class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 fill-slate-500 pointer-events-none" />
           </div>
 
           <div class="flex flex-col gap-2">
