@@ -3,6 +3,7 @@
 import {useInventoryStore} from "@/stores/inventoryStore.js";
 import {computed, onMounted, ref} from "vue";
 import ChevronDownIcon from "@/components/icons/ChevronDownIcon.vue";
+import {StockOperationsType} from "@/utils/stockOperations.js";
 
 const props = defineProps({
   sku: {type: String, required: true},
@@ -10,7 +11,7 @@ const props = defineProps({
 
 const store = useInventoryStore()
 const quantity = ref(1)
-const operation = ref('ADD')
+const operation = ref(StockOperationsType.ADD)
 
 onMounted(() => {
   store.fetchStock(props.sku)
@@ -70,8 +71,8 @@ async function handleAdjustment() {
           <div class="flex flex-col gap-2">
             <label class="text-sm font-medium text-slate-600">Operation</label>
             <select v-model="operation" class="w-full px-2.5 py-2.5 border border-slate-200 rounded-lg text-sm bg-white h-10 appearance-none bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%23475569%22%20d%3D%22M6%208L1%203h10z%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-position-[right_0.625rem_center] pr-8 cursor-pointer focus:outline-2 focus:outline-blue-600 focus:-outline-offset-1">
-              <option value="ADD">Add Stock</option>
-              <option value="REMOVE">Remove Stock</option>
+              <option :value="StockOperationsType.ADD">Add Stock</option>
+              <option :value="StockOperationsType.REMOVE">Remove Stock</option>
             </select>
             <ChevronDownIcon class="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 fill-slate-500 pointer-events-none" />
           </div>
@@ -92,10 +93,10 @@ async function handleAdjustment() {
           @click="handleAdjustment"
           :disabled="store.loading || quantity <= 0"
           class="px-4 py-3 rounded-lg text-sm font-semibold border-none cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          :class="operation === 'ADD' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-red-700 text-white hover:opacity-90'"
+          :class="operation === StockOperationsType.ADD ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-red-700 text-white hover:opacity-90'"
         >
           <span v-if="store.loading">Processing...</span>
-          <span v-else>{{ operation === 'ADD' ? 'Add Stock' : 'Remove Stock' }}</span>
+          <span v-else>{{ operation === StockOperationsType.ADD ? 'Add Stock' : 'Remove Stock' }}</span>
         </button>
       </div>
     </div>
