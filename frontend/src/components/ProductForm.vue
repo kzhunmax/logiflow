@@ -5,99 +5,67 @@ import CloseIcon from "@/components/icons/CloseIcon.vue";
 import BarcodeIcon from "@/components/icons/BarcodeIcon.vue";
 import PlusIcon from "@/components/icons/PlusIcon.vue";
 import TrashIcon from "@/components/icons/TrashIcon.vue";
+import {useField, useForm} from "vee-validate";
+import {productSchema} from "@/validation/productSchema.js";
 
 const props = defineProps({
   loading: {type: Boolean, default: false}
 })
-const emit = defineEmits(['product-submit'])
-const name = ref('')
-const sku = ref('')
-const price = ref('')
-const attributes = ref([
-  {key: '', value: ''}
-])
+const emit = defineEmits(['product-submit', 'cancel'])
 
-const errors = ref({
-  name: '',
-  sku: '',
-  price: '',
-  attributes: []
-})
-
-function clearErrors() {
-  errors.value = {
+const {handleSubmit, errors} = useForm({
+  validationSchema: productSchema,
+  initialValues: {
     name: '',
     sku: '',
-    price: '',
-    attributes: []
-  };
-}
-
-function isDataValidated() {
-  clearErrors()
-  let isValid = true
-
-  if (!name.value || name.value.trim() === '') {
-    errors.value.name = 'Product name must not be blank'
-    isValid = false
-  } else if (name.value.length < 2 || name.value.length > 100) {
-    errors.value.name = 'Name must be between 2 and 100 characters long.'
-    isValid = false
+    price: ''
   }
+})
 
-  if (!sku.value || sku.value.trim() === '') {
-    errors.value.sku = 'SKU must not be blank'
-    isValid = false
-  } else if (sku.value.length < 2 || sku.value.length > 150) {
-    errors.value.sku = 'SKU must be between 2 and 150 characters long.'
-    isValid = false
-  }
+const {value: name} = useField('name')
+const {value: sku} = useField('sku')
+const {value: price} = useField('price')
+const attributes = ref([{key: '', value: ''}])
 
-  if (parseFloat(price.value) < 0.01) {
-    errors.value.price = 'Price must be greater than 0.01'
-    isValid = false
-  } else if (!price.value) {
-    errors.value.price = 'Price must not be blank'
-    isValid = false
-  }
-  return isValid
-}
+const onSubmit = handleSubmit((values) => {
+  if (props.loading) return
 
-function handleSubmit() {
-  if (props.loading === true) return
-  if (!isDataValidated()) return
-  let normalizedAttributes = Object.fromEntries(
+  const normalizedAttributes = Object.fromEntries(
     attributes.value
       .filter(attr => attr.key.trim() !== '')
       .map(attr => [attr.key.trim(), attr.value.trim()])
   )
-  const productData = {
-    name: name.value.trim(),
-    sku: sku.value.trim(),
-    price: parseFloat(price.value),
+
+  emit('product-submit', {
+    name: values.name.trim(),
+    sku: values.sku.trim(),
+    price: parseFloat(values.price),
     attributes: normalizedAttributes
-  }
-  emit('product-submit', productData);
-}
+  })
+})
 
 </script>
 
 <template>
   <main class="grow p-6 md:p-10 flex justify-center">
-    <div class="w-full max-w-3xl bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
+    <div
+      class="w-full max-w-3xl bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
       <div class="p-6 px-8 border-b border-slate-200 flex justify-between items-center bg-slate-50">
         <div>
           <h1 class="text-2xl font-bold">Create Product</h1>
           <p class="text-sm text-slate-500 mt-1">Add a new item to your global catalog.</p>
         </div>
-        <button class="text-slate-500 bg-transparent border-none text-2xl cursor-pointer p-1 leading-none hover:text-slate-600" @click="emit('cancel')">
+        <button
+          class="text-slate-500 bg-transparent border-none text-2xl cursor-pointer p-1 leading-none hover:text-slate-600"
+          @click="emit('cancel')">
           <CloseIcon class="w-4 h-4 fill-current"/>
         </button>
       </div>
 
-      <form @submit.prevent="handleSubmit" class="p-8" novalidate>
+      <form @submit.prevent="onSubmit" class="p-8" novalidate>
         <div class="mb-8">
-          <h3 class="text-xs uppercase tracking-wide text-slate-400 font-bold mb-4">Basic Information</h3>
+          <h3 class="text-xs uppercase tracking-wide text-slate-400 font-bold mb-4">Basic
+            Information</h3>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="flex flex-col gap-2">
@@ -151,10 +119,13 @@ function handleSubmit() {
         <div class="mb-8">
           <div class="flex justify-between items-end mb-4">
             <div>
-              <h3 class="text-xs uppercase tracking-wide text-slate-400 font-bold">Dynamic Attributes</h3>
-              <p class="text-xs text-slate-400 mt-1">Add custom properties like Color, Size, or Material.</p>
+              <h3 class="text-xs uppercase tracking-wide text-slate-400 font-bold">Dynamic
+                Attributes</h3>
+              <p class="text-xs text-slate-400 mt-1">Add custom properties like Color, Size, or
+                Material.</p>
             </div>
-            <button type="button" class="text-blue-600 bg-transparent border border-transparent py-2 px-3 rounded-lg text-sm font-semibold cursor-pointer transition-all flex items-center gap-1 hover:bg-blue-600/5 hover:border-blue-600/10"
+            <button type="button"
+                    class="text-blue-600 bg-transparent border border-transparent py-2 px-3 rounded-lg text-sm font-semibold cursor-pointer transition-all flex items-center gap-1 hover:bg-blue-600/5 hover:border-blue-600/10"
                     @click="attributes.push({key: '', value: ''})">
               <PlusIcon class="w-3 h-3 fill-current"/>
               Add Attribute
@@ -162,13 +133,16 @@ function handleSubmit() {
           </div>
 
           <div class="bg-slate-50 rounded-lg border border-slate-200 p-4 flex flex-col gap-3">
-            <div v-for="(attr, index) in attributes" :key="index" class="flex gap-3 items-center group">
+            <div v-for="(attr, index) in attributes" :key="index"
+                 class="flex gap-3 items-center group">
               <div class="flex-1">
-                <input v-model="attr.key" type="text" placeholder="Key" class="w-full py-2.5 px-3 border border-slate-200 rounded-md text-sm focus:outline-none focus:border-blue-600"/>
+                <input v-model="attr.key" type="text" placeholder="Key"
+                       class="w-full py-2.5 px-3 border border-slate-200 rounded-md text-sm focus:outline-none focus:border-blue-600"/>
               </div>
               <div class="text-slate-500 text-lg">→</div>
               <div class="flex-1">
-                <input v-model="attr.value" type="text" placeholder="Value" class="w-full py-2.5 px-3 border border-slate-200 rounded-md text-sm focus:outline-none focus:border-blue-600"/>
+                <input v-model="attr.value" type="text" placeholder="Value"
+                       class="w-full py-2.5 px-3 border border-slate-200 rounded-md text-sm focus:outline-none focus:border-blue-600"/>
               </div>
               <button
                 type="button"
@@ -176,15 +150,21 @@ function handleSubmit() {
                 :disabled="attributes.length === 1"
                 @click="attributes.splice(index, 1)"
               >
-              <TrashIcon class="w-4 h-4 fill-current"/>
+                <TrashIcon class="w-4 h-4 fill-current"/>
               </button>
             </div>
           </div>
         </div>
 
-        <div class="py-5 px-8 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3 -mx-8 -mb-8 mt-8">
-          <button type="button" class="py-2.5 px-5 text-sm font-medium text-slate-500 bg-transparent border-none rounded-lg cursor-pointer transition-all hover:text-slate-900 hover:bg-slate-200" @click="emit('cancel')">Cancel</button>
-          <button type="submit" class="py-2.5 px-5 text-sm font-medium text-white bg-blue-600 border-none rounded-lg shadow-sm cursor-pointer transition-all hover:bg-blue-700 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed" :disabled="loading">
+        <div
+          class="py-5 px-8 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3 -mx-8 -mb-8 mt-8">
+          <button type="button"
+                  class="py-2.5 px-5 text-sm font-medium text-slate-500 bg-transparent border-none rounded-lg cursor-pointer transition-all hover:text-slate-900 hover:bg-slate-200"
+                  @click="emit('cancel')">Cancel
+          </button>
+          <button type="submit"
+                  class="py-2.5 px-5 text-sm font-medium text-white bg-blue-600 border-none rounded-lg shadow-sm cursor-pointer transition-all hover:bg-blue-700 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                  :disabled="loading">
             {{ loading ? 'Creating...' : 'Create Product' }}
           </button>
         </div>

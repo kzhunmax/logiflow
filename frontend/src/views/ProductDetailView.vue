@@ -6,6 +6,8 @@ import {ref} from "vue";
 import InventoryManager from "@/components/InventoryManager.vue";
 import PlusIcon from "@/components/icons/PlusIcon.vue";
 import TrashIcon from "@/components/icons/TrashIcon.vue";
+import {useField, useForm} from "vee-validate";
+import {productSchema} from "@/validation/productSchema.js";
 
 const route = useRoute()
 const router = useRouter()
@@ -15,12 +17,15 @@ const productId = route.params.id
 productStore.fetchProductById(productId)
 
 const isEditing = ref(false)
-const editingForm = ref({
-  name: '',
-  sku: '',
-  price: 0,
-  attributes: []
+
+const { handleSubmit: validateAndSubmit, errors, resetForm, setValues } = useForm({
+  validationSchema: productSchema
 })
+
+const { value: editName } = useField('name')
+const { value: editSku } = useField('sku')
+const { value: editPrice } = useField('price')
+const attributes = ref([])
 
 function transformAttributesToArray(attributes) {
   if (!attributes) return [];
@@ -36,15 +41,15 @@ function transformArrayToObject(attributesArray) {
 }
 
 function enableEditMode() {
-  editingForm.value = {
+  setValues({
     name: productStore.product.name,
     sku: productStore.product.sku,
-    price: productStore.product.price,
-    attributes: transformAttributesToArray(productStore.product.attributes)
-  }
+    price: productStore.product.price
+  })
 
-  if (editingForm.value.attributes.length === 0) {
-    editingForm.value.attributes.push({key: '', value: ''})
+  attributes.value = transformAttributesToArray(productStore.product.attributes)
+  if (attributes.value.length === 0) {
+    attributes.value.push({ key: '', value: '' })
   }
 
   isEditing.value = true
@@ -52,28 +57,28 @@ function enableEditMode() {
 
 function cancelEdit() {
   isEditing.value = false
-  editingForm.value = {name: '', sku: '', price: 0, attributes: []}
+  resetForm()
 }
 
 function addAttributeRow() {
-  editingForm.value.attributes.push({key: '', value: ''});
+  attributes.value.push({key: '', value: ''});
 }
 
 function removeAttributeRow(index) {
-  editingForm.value.attributes.splice(index, 1);
+  attributes.value.splice(index, 1);
 }
 
-async function handleUpdate() {
+const handleUpdate = validateAndSubmit(async (values) => {
   const payload = {
-    name: editingForm.value.name,
-    sku: editingForm.value.sku,
-    price: parseFloat(editingForm.value.price),
-    attributes: transformArrayToObject(editingForm.value.attributes)
+    name: values.name,
+    sku: values.sku,
+    price: parseFloat(values.price),
+    attributes: transformArrayToObject(attributes.value)
   }
   await productStore.updateProduct(productId, payload)
   await productStore.fetchProductById(productId)
   isEditing.value = false
-}
+})
 
 async function handleDelete() {
   if (confirm("Are you sure you want to delete this product?")) {
@@ -186,18 +191,21 @@ async function handleDelete() {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="flex flex-col gap-2">
               <label class="text-sm font-medium text-slate-600">Product Name</label>
-              <input v-model="editingForm.name" type="text"
+              <input v-model="editName" type="text"
                      class="w-full py-2.5 px-3 border border-slate-300 rounded-lg text-sm focus:outline-2 focus:outline-blue-600 focus:-outline-offset-1"/>
+              <span v-if="errors.name" class="text-red-500 text-xs">{{ errors.name }}</span>
             </div>
             <div class="flex flex-col gap-2">
               <label class="text-sm font-medium text-slate-600">SKU</label>
-              <input v-model="editingForm.sku" type="text"
+              <input v-model="editSku" type="text"
                      class="w-full py-2.5 px-3 border border-slate-300 rounded-lg text-sm focus:outline-2 focus:outline-blue-600 focus:-outline-offset-1"/>
+              <span v-if="errors.sku" class="text-red-500 text-xs">{{ errors.sku }}</span>
             </div>
             <div class="flex flex-col gap-2">
               <label class="text-sm font-medium text-slate-600">Price ($)</label>
-              <input v-model="editingForm.price" type="number" step="0.01"
+              <input v-model="editPrice" type="number" step="0.01"
                      class="w-full py-2.5 px-3 border border-slate-300 rounded-lg text-sm focus:outline-2 focus:outline-blue-600 focus:-outline-offset-1"/>
+              <span v-if="errors.price" class="text-red-500 text-xs">{{ errors.price }}</span>
             </div>
           </div>
 
@@ -215,7 +223,7 @@ async function handleDelete() {
             </div>
 
             <div id="attributes-container" class="flex flex-col gap-3">
-              <div v-for="(attr, index) in editingForm.attributes" :key="index"
+              <div v-for="(attr, index) in attributes" :key="index"
                    class="flex gap-2 items-center">
                 <input v-model="attr.key" type="text"
                        class="flex-1 py-2 px-3 border border-slate-200 rounded-md text-sm"
