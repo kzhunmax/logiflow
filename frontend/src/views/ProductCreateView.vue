@@ -7,12 +7,14 @@ import ProductForm from "@/components/ProductForm.vue";
 const router = useRouter()
 const productStore = useProductStore()
 
-function handleSubmit(product) {
-  productStore.createProduct(product).then(() => {
-    router.push('/')
-  }).catch((error) => {
-    console.error("Error creating product:", error)
-  })
+async function handleSubmit(product) {
+  try {
+    await productStore.createProduct(product)
+    await productStore.fetchProducts()
+    await router.push('/')
+  } catch (error) {
+    console.error('Failed to create product:', error)
+  }
 }
 
 </script>
