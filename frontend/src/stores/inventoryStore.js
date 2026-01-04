@@ -1,6 +1,6 @@
 import {defineStore} from "pinia";
 import {ref} from "vue";
-import api from "@/services/api.js";
+import {inventoryService} from "@/services/inventoryService.js";
 
 export const useInventoryStore = defineStore('inventory', () => {
   const stock = ref(null)
@@ -19,7 +19,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     error.value = null
 
     try {
-      const response = await api.get(`/inventory/${sku}`)
+      const response = await inventoryService.getStock(sku)
       stock.value = response.data
     } catch (err) {
       error.value = err.message
@@ -33,7 +33,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     error.value = null
 
     try {
-      await api.post('/inventory/stock', payload)
+      await inventoryService.adjustStock(payload)
       await fetchStock(payload.sku)
       await fetchAllInventory(pagination.value.currentPage);
     } catch (err) {
@@ -52,9 +52,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     error.value = null
 
     try {
-      const response = await api.get('/inventory', {
-        params: {page: page - 1, size: pagination.value.pageSize}
-      })
+      const response = await inventoryService.getAll(page - 1, pagination.value.pageSize)
       inventoryList.value = response.data.content
       pagination.value.totalPages = response.data.page.totalPages
       pagination.value.totalItems = response.data.page.totalElements
@@ -70,5 +68,15 @@ export const useInventoryStore = defineStore('inventory', () => {
     error.value = message
   }
 
-  return {stock, loading, error, fetchStock, fetchAllInventory, adjustStock, setError}
+  return {
+    stock,
+    loading,
+    error,
+    inventoryList,
+    pagination,
+    fetchStock,
+    fetchAllInventory,
+    adjustStock,
+    setError
+  }
 })

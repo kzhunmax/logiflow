@@ -1,17 +1,20 @@
 import {ref} from "vue";
-import api from "@/services/api.js";
 import {defineStore} from "pinia";
+import {productService} from "@/services/productService.js";
 
 export const useProductStore = defineStore('product', () => {
   const products = ref([])
+  const product = ref(null)
   const loading = ref(false)
   const error = ref(null)
-  const currentPage = ref(1)
-  const totalPages = ref(1)
-  const totalItems = ref(0)
-  const pageSize = ref(10)
   const searchQuery = ref('')
-  const product = ref(null)
+  const pagination = ref({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    pageSize: 10
+  })
+
 
   async function fetchProducts(page = 1, search = searchQuery.value) {
     loading.value = true
@@ -19,14 +22,12 @@ export const useProductStore = defineStore('product', () => {
     searchQuery.value = search
 
     try {
-      const response = await api.get('/catalog/products', {
-        params: {page: page - 1, size: pageSize.value, search: search || undefined}
-      })
+      const response = await productService.getAll(page - 1, pagination.value.pageSize, search)
 
       products.value = response.data.content
-      totalPages.value = response.data.page.totalPages
-      totalItems.value = response.data.page.totalElements
-      currentPage.value = page
+      pagination.value.totalPages = response.data.page.totalPages
+      pagination.value.totalItems = response.data.page.totalElements
+      pagination.value.currentPage = page
     } catch (err) {
       error.value = err.response?.data?.message || 'Failed to load products.'
     } finally {
@@ -39,7 +40,7 @@ export const useProductStore = defineStore('product', () => {
     error.value = null
 
     try {
-      await api.post(`/catalog/products`, productData)
+      await productService.create(productData)
     } catch (err) {
       error.value = err.message
     } finally {
@@ -52,7 +53,7 @@ export const useProductStore = defineStore('product', () => {
     error.value = null
 
     try {
-      const response = await api.get(`/catalog/products/${productId}`)
+      const response = await productService.getById(productId)
       product.value = response.data
     } catch (err) {
       error.value = err.message
@@ -66,7 +67,7 @@ export const useProductStore = defineStore('product', () => {
     error.value = null
 
     try {
-      await api.put(`/catalog/products/${productId}`, productData)
+      await productService.update(productId, productData)
     } catch (err) {
       error.value = err.message
     } finally {
@@ -79,7 +80,7 @@ export const useProductStore = defineStore('product', () => {
     error.value = null
 
     try {
-      await api.delete(`/catalog/products/${productId}`)
+      await productService.delete(productId)
     } catch (err) {
       error.value = err.message
     } finally {
@@ -87,5 +88,17 @@ export const useProductStore = defineStore('product', () => {
     }
   }
 
-  return { products, loading, error, currentPage, totalPages, totalItems, searchQuery, product, fetchProducts, createProduct, fetchProductById, updateProduct, deleteProduct}
+  return {
+    products,
+    product,
+    loading,
+    error,
+    searchQuery,
+    pagination,
+    fetchProducts,
+    fetchProductById,
+    createProduct,
+    updateProduct,
+    deleteProduct
+  }
 })
