@@ -5,6 +5,7 @@ import com.logiflow.catalog.dto.ProductResponseDTO;
 import com.logiflow.catalog.model.Product;
 import com.logiflow.catalog.repository.ProductRepository;
 import com.logiflow.shared.event.ProductCreatedEvent;
+import com.logiflow.shared.event.ProductSkuUpdatedEvent;
 import com.logiflow.shared.exception.ProductNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,12 +51,21 @@ public class ProductService {
     public ProductResponseDTO updateProduct(String id, ProductRequestDTO dto) {
         Product product = findProductOrThrow(id);
 
+        String oldSku = product.getSku();
+        boolean skuChanged = !oldSku.equals(dto.sku());
+
         product.setName(dto.name());
         product.setSku(dto.sku());
         product.setPrice(dto.price());
         product.setAttributes(dto.attributes());
 
         Product savedProduct = productRepository.save(product);
+
+        if (skuChanged) {
+            log.info("Publishing ProductSkuUpdatedEvent: oldSku={}, newSku={}", oldSku, dto.sku());
+            eventPublisher.publishEvent(new ProductSkuUpdatedEvent(savedProduct.getId(), oldSku, dto.sku()));
+        }
+
         return mapToDTO(savedProduct);
     }
 

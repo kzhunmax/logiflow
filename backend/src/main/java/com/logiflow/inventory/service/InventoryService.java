@@ -79,6 +79,15 @@ public class InventoryService {
         return new InventoryResponseDTO(inventory.getSku(), available);
     }
 
+    @Transactional
+    public void updateSku(String oldSku, String newSku) {
+        Inventory inventory = inventoryRepository.findBySku(oldSku)
+                .orElseThrow(() -> new InventoryNotFoundException(oldSku));
+        inventory.setSku(newSku);
+        inventoryRepository.save(inventory);
+        log.info("Updated inventory SKU from {} to {}", oldSku, newSku);
+    }
+
     private void createInventory(String sku, Integer quantity) {
         Inventory newInventory = Inventory.builder()
                 .sku(sku)

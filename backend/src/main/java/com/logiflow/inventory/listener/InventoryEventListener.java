@@ -2,6 +2,7 @@ package com.logiflow.inventory.listener;
 
 import com.logiflow.inventory.service.InventoryService;
 import com.logiflow.shared.event.ProductCreatedEvent;
+import com.logiflow.shared.event.ProductSkuUpdatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -19,5 +20,12 @@ public class InventoryEventListener {
     public void handleProductCreatedEvent(ProductCreatedEvent event) {
         log.info("Received ProductCreatedEvent for productId: {}, SKU: {}", event.productId(), event.sku());
         inventoryService.initializeInventory(event.sku());
+    }
+
+    @EventListener
+    public void handleProductSkuUpdatedEvent(ProductSkuUpdatedEvent event) {
+        log.info("Received ProductSkuUpdatedEvent for productId: {}, oldSku: {}, newSku: {}",
+                event.productId(), event.oldSku(), event.newSku());
+        inventoryService.updateSku(event.oldSku(), event.newSku());
     }
 }
