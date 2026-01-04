@@ -1,13 +1,16 @@
 <script setup>
 import {useRouter} from "vue-router";
 import {useProductStore} from "@/stores/productStore.js";
-import {onMounted, ref, watch} from "vue";
+import {ref, watch} from "vue";
 import DataTable from "@/components/DataTable.vue";
 import SearchIcon from "@/components/icons/SearchIcon.vue";
 import PlusIcon from "@/components/icons/PlusIcon.vue";
 
 const router = useRouter()
 const productStore = useProductStore()
+if (!productStore.products.length) {
+  productStore.fetchProducts()
+}
 
 const searchInput = ref('')
 let debounceTimer = null
@@ -37,10 +40,6 @@ function handlePageChange(page) {
 function handleRowClick(product) {
   router.push(`/product/${product.id}`)
 }
-
-onMounted(() => {
-  productStore.fetchProducts()
-})
 
 </script>
 
