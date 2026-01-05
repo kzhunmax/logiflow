@@ -1,33 +1,54 @@
 <script setup>
 import {useRouter} from "vue-router";
 import {useProductStore} from "@/stores/productStore.js";
-import {ref, watch} from "vue";
+import {useInventoryStore} from "@/stores/inventoryStore.js";
+import {computed, ref, watch} from "vue";
 import {useI18n} from "vue-i18n";
 import DataTable from "@/components/DataTable.vue";
 import SearchIcon from "@/components/icons/SearchIcon.vue";
 import PlusIcon from "@/components/icons/PlusIcon.vue";
+import StockAdjustmentModal from "@/components/StockAdjustmentModal.vue";
 
-const { t } = useI18n()
+const {t} = useI18n()
 const router = useRouter()
 const productStore = useProductStore()
-if (!productStore.products.length) {
-  productStore.fetchProducts()
-}
+const inventoryStore = useInventoryStore()
 
 const searchInput = ref('')
 let debounceTimer = null
+
+const showStockModal = ref(false)
+const selectedProduct = ref(null)
 
 const columns = [
   {key: 'name', label: 'Name'},
   {key: 'sku', label: 'SKU'},
   {key: 'price', label: 'Price'},
-  {key: 'category', label: 'Category'},
+  {key: 'stock', label: 'Stock'},
+  {key: 'actions', label: 'Actions'},
 ]
+
+const productsWithStock = computed(() => {
+  return productStore.products.map(product => ({
+    ...product,
+    stock: inventoryStore.getStockBySku(product.sku)
+  }))
+})
+
+async function fetchData(page = 1, search = searchInput.value) {
+  await productStore.fetchProducts(page, search)
+  const skus = productStore.products.map(p => p.sku)
+  await inventoryStore.fetchInventoryBySKUs(skus)
+}
+
+if (!productStore.products.length) {
+  fetchData()
+}
 
 function handleSearch(value) {
   clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => {
-    productStore.fetchProducts(1, value)
+    fetchData(1, value)
   }, 300)
 }
 
@@ -36,13 +57,33 @@ watch(searchInput, (newValue) => {
 })
 
 function handlePageChange(page) {
-  productStore.fetchProducts(page, searchInput.value)
+  fetchData(page, searchInput.value)
 }
 
 function handleRowClick(product) {
   router.push(`/product/${product.id}`)
 }
 
+function openStockModal(product) {
+  selectedProduct.value = product
+  showStockModal.value = true
+}
+
+function closeStockModal() {
+  showStockModal.value = false
+  selectedProduct.value = null
+}
+
+async function handleStockUpdated() {
+  const skus = productStore.products.map(p => p.sku)
+  await inventoryStore.fetchInventoryBySKUs(skus)
+}
+
+function getStockStatus(stock) {
+  if (stock === 0) return 'out'
+  if (stock <= 10) return 'low'
+  return 'ok'
+}
 </script>
 
 <template>
@@ -80,7 +121,7 @@ function handleRowClick(product) {
 
     <DataTable
       :columns="columns"
-      :items="productStore.products"
+      :items="productsWithStock"
       :loading="productStore.loading"
       :current-page="productStore.currentPage"
       :total-pages="productStore.totalPages"
@@ -92,14 +133,46 @@ function handleRowClick(product) {
         ${{ item.price?.toFixed(2) }}
       </template>
 
-      <template #category="{ item }">
-        {{ item.category?.name || '-' }}
+      <template #stock="{ item }">
+        <span
+          :class="{
+            'text-red-600 font-semibold': getStockStatus(item.stock) === 'out',
+            'text-amber-600 font-medium': getStockStatus(item.stock) === 'low',
+            'text-slate-900': getStockStatus(item.stock) === 'ok'
+          }"
+        >
+          {{ item.stock }}
+        </span>
+        <span
+          v-if="getStockStatus(item.stock) === 'low'"
+          class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700"
+        >
+          {{ t('inventory.lowStock') }}
+        </span>
+        <span
+          v-else-if="getStockStatus(item.stock) === 'out'"
+          class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700"
+        >
+          {{ t('inventory.outOfStock') }}
+        </span>
+      </template>
+
+      <template #actions="{ item }">
+        <button
+          @click.stop="openStockModal(item)"
+          class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded text-xs font-medium hover:bg-slate-200 transition-colors"
+        >
+          {{ t('inventory.adjustStock') }}
+        </button>
       </template>
     </DataTable>
 
+    <StockAdjustmentModal
+      :show="showStockModal"
+      :product="selectedProduct"
+      @close="closeStockModal"
+      @updated="handleStockUpdated"
+    />
   </div>
 </template>
 
-<style scoped>
-
-</style>

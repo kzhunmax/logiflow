@@ -8,11 +8,10 @@ import com.logiflow.shared.exception.InventoryNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -22,12 +21,14 @@ public class InventoryService {
 
     private final InventoryRepository inventoryRepository;
 
-    public Page<InventoryResponseDTO> getAllInventories(Pageable pageable) {
-        Page<Inventory> inventories = inventoryRepository.findAll(pageable);
-        return inventories.map(inventory -> new InventoryResponseDTO(
-                inventory.getSku(),
-                inventory.getQuantity() - inventory.getReserved()
-        ));
+
+    public List<InventoryResponseDTO> getInventoriesBySKUs(List<String> skus) {
+        return inventoryRepository.findBySkuIn(skus).stream()
+                .map(inventory -> new InventoryResponseDTO(
+                        inventory.getSku(),
+                        inventory.getQuantity() - inventory.getReserved()
+                ))
+                .toList();
     }
 
     @Transactional

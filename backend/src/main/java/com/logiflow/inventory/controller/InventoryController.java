@@ -13,10 +13,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/inventory")
@@ -26,15 +27,19 @@ public class InventoryController {
 
     private final InventoryService inventoryService;
 
-    @GetMapping
-    @Operation(summary = "Get all inventories", description = "Returns a paginated list of inventories")
+
+    @GetMapping("/batch")
+    @Operation(summary = "Get inventories by SKUs", description = "Returns inventory data for a list of SKUs")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved inventories",
-                    content = @Content(schema = @Schema(implementation = Page.class)))
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved inventories")
     })
-    public Page<InventoryResponseDTO> getAllInventories(
-            @Parameter(description = "Pageable parameters (page, size, sort)") Pageable pageable) {
-        return inventoryService.getAllInventories(pageable);
+    public List<InventoryResponseDTO> getInventoriesBySKUs(
+            @Parameter(description = "Comma-separated list of SKUs") @RequestParam String skus) {
+        List<String> skuList = Arrays.stream(skus.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+        return inventoryService.getInventoriesBySKUs(skuList);
     }
 
     @GetMapping("/{sku}")
@@ -63,7 +68,7 @@ public class InventoryController {
     })
     public ResponseEntity<Void> adjustStock(
             @Valid @RequestBody StockAdjustmentDTO dto) {
-        switch(dto.type()) {
+        switch (dto.type()) {
             case ADD -> inventoryService.addStock(dto.sku(), dto.adjustmentQuantity());
             case REMOVE -> inventoryService.reserveStock(dto.sku(), dto.adjustmentQuantity());
         }

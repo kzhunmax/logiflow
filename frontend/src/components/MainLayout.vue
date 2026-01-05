@@ -1,8 +1,8 @@
 <script setup>
-import { useI18n } from 'vue-i18n'
+import {useI18n} from 'vue-i18n'
 import LogoIcon from "@/components/icons/LogoIcon.vue";
 
-const { locale, t } = useI18n()
+const {locale, t} = useI18n()
 
 function switchLocale(newLocale) {
   locale.value = newLocale
@@ -12,16 +12,20 @@ function switchLocale(newLocale) {
 
 <template>
   <div class="min-h-screen flex flex-col">
-    <nav class="flex justify-between items-center bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-50">
+    <nav
+      class="flex justify-between items-center bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-50">
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 p-1 flex items-center justify-center bg-blue-600 rounded-lg text-white font-bold">
+        <div
+          class="w-8 h-8 p-1 flex items-center justify-center bg-blue-600 rounded-lg text-white font-bold">
           <LogoIcon/>
         </div>
         <span class="text-xl font-bold tracking-tight text-slate-900">LogiFlow</span>
       </div>
       <div class="flex gap-6 items-center">
-        <RouterLink to="/" class="text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors [&.router-link-exact-active]:text-blue-600">{{ t('nav.products') }}</RouterLink>
-        <RouterLink to="/inventory" class="text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors [&.router-link-exact-active]:text-blue-600">{{ t('nav.inventory') }}</RouterLink>
+        <RouterLink to="/"
+                    class="text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors [&.router-link-exact-active]:text-blue-600">
+          {{ t('nav.products') }}
+        </RouterLink>
 
         <div class="flex items-center gap-1 ml-4 border-l border-slate-200 pl-4">
           <button

@@ -9,9 +9,10 @@ export const inventoryService = {
     return api.post('/inventory/stock', payload);
   },
 
-  getAll(page, size) {
-    return api.get('/inventory', {
-      params: {page, size}
+  getBySKUs(skus) {
+    if (!skus || skus.length === 0) return Promise.resolve({data: []})
+    return api.get('/inventory/batch', {
+      params: {skus: skus.join(',')}
     })
   }
 }

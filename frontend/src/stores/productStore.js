@@ -1,6 +1,6 @@
-import {ref} from "vue";
-import {defineStore} from "pinia";
-import {productService} from "@/services/productService.js";
+import { ref, computed } from "vue";
+import { defineStore } from "pinia";
+import { productService } from "@/services/productService.js";
 
 export const useProductStore = defineStore('product', () => {
   const products = ref([])
@@ -14,6 +14,10 @@ export const useProductStore = defineStore('product', () => {
     totalItems: 0,
     pageSize: 10
   })
+
+  const currentPage = computed(() => pagination.value.currentPage)
+  const totalPages = computed(() => pagination.value.totalPages)
+  const totalItems = computed(() => pagination.value.totalItems)
 
 
   async function fetchProducts(page = 1, search = searchQuery.value) {
@@ -95,6 +99,9 @@ export const useProductStore = defineStore('product', () => {
     error,
     searchQuery,
     pagination,
+    currentPage,
+    totalPages,
+    totalItems,
     fetchProducts,
     fetchProductById,
     createProduct,

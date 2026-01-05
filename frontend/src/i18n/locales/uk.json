@@ -80,7 +80,8 @@
     "currentQuantity": "Поточна кількість",
     "enterQuantity": "Введіть кількість",
     "lowStock": "Низький запас",
-    "inStock": "В наявності"
+    "inStock": "В наявності",
+    "outOfStock": "Немає в наявності"
   },
   "validation": {
     "required": "{field} є обов'язковим",

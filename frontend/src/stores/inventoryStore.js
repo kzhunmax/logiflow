@@ -6,13 +6,7 @@ export const useInventoryStore = defineStore('inventory', () => {
   const stock = ref(null)
   const loading = ref(false)
   const error = ref(null)
-  const pagination = ref({
-    currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
-    pageSize: 10
-  })
-  const inventoryList = ref([])
+  const inventoryMap = ref({})
 
   async function fetchStock(sku) {
     loading.value = true
@@ -28,37 +22,42 @@ export const useInventoryStore = defineStore('inventory', () => {
     }
   }
 
+  async function fetchInventoryBySKUs(skus) {
+    if (!skus || skus.length === 0) {
+      inventoryMap.value = {}
+      return
+    }
+
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await inventoryService.getBySKUs(skus)
+      const map = {}
+      response.data.forEach(item => {
+        map[item.sku] = item.availableQuantity
+      })
+      inventoryMap.value = map
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Failed to load inventory.'
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function adjustStock(payload) {
     loading.value = true
     error.value = null
 
     try {
       await inventoryService.adjustStock(payload)
-      await fetchStock(payload.sku)
-      await fetchAllInventory(pagination.value.currentPage);
     } catch (err) {
       if (err.response?.status === 409) {
         error.value = 'Cannot remove more stock than available'
       } else {
         error.value = err.response?.data?.message || err.message
       }
-    } finally {
-      loading.value = false
-    }
-  }
-
-  async function fetchAllInventory(page = 1) {
-    loading.value = true
-    error.value = null
-
-    try {
-      const response = await inventoryService.getAll(page - 1, pagination.value.pageSize)
-      inventoryList.value = response.data.content
-      pagination.value.totalPages = response.data.page.totalPages
-      pagination.value.totalItems = response.data.page.totalElements
-      pagination.value.currentPage = page
-    } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to load inventories.'
+      throw err
     } finally {
       loading.value = false
     }
@@ -68,15 +67,19 @@ export const useInventoryStore = defineStore('inventory', () => {
     error.value = message
   }
 
+  function getStockBySku(sku) {
+    return inventoryMap.value[sku] ?? 0
+  }
+
   return {
     stock,
     loading,
     error,
-    inventoryList,
-    pagination,
+    inventoryMap,
     fetchStock,
-    fetchAllInventory,
+    fetchInventoryBySKUs,
     adjustStock,
-    setError
+    setError,
+    getStockBySku
   }
 })

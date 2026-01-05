@@ -80,7 +80,8 @@
     "currentQuantity": "Current Quantity",
     "enterQuantity": "Enter quantity",
     "lowStock": "Low Stock",
-    "inStock": "In Stock"
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock"
   },
   "validation": {
     "required": "{field} is required",
