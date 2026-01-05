@@ -1,4 +1,7 @@
 <script setup>
+import {useI18n} from "vue-i18n";
+
+const { t } = useI18n()
 
 const props = defineProps({
   columns: {type: Array, required: true},
@@ -28,10 +31,10 @@ function goToPage(page) {
       </thead>
       <tbody>
       <tr v-if="loading">
-        <td :colspan="columns.length" class="text-left px-6 py-4 text-slate-400 text-sm">Loading...</td>
+        <td :colspan="columns.length" class="text-left px-6 py-4 text-slate-400 text-sm">{{ t('common.loading') }}</td>
       </tr>
       <tr v-else-if="items.length === 0">
-        <td :colspan="columns.length" class="text-left px-6 py-4 text-slate-400 text-sm">No data available</td>
+        <td :colspan="columns.length" class="text-left px-6 py-4 text-slate-400 text-sm">{{ t('common.noData') }}</td>
       </tr>
       <tr
         v-else
@@ -50,11 +53,11 @@ function goToPage(page) {
     </table>
 
     <div class="flex justify-between items-center px-6 py-4 bg-slate-50 border-t border-slate-200 text-xs text-slate-500">
-      <span>Total: {{ totalItems }} items</span>
+      <span>{{ t('common.total') }}: {{ totalItems }} {{ t('common.items') }}</span>
       <div class="flex gap-2 items-center">
         <button :disabled="currentPage === 1" @click="goToPage(1)" class="px-2 py-1 border border-slate-200 bg-white rounded text-slate-500 cursor-pointer transition-all hover:bg-slate-200 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-50">«</button>
         <button :disabled="currentPage === 1" @click="goToPage(currentPage - 1)" class="px-2 py-1 border border-slate-200 bg-white rounded text-slate-500 cursor-pointer transition-all hover:bg-slate-200 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-50">‹</button>
-        <span>Page {{ currentPage }} of {{ Math.max(totalPages, 1) }}</span>
+        <span>{{ t('common.page') }} {{ currentPage }} {{ t('common.of') }} {{ Math.max(totalPages, 1) }}</span>
         <button :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)" class="px-2 py-1 border border-slate-200 bg-white rounded text-slate-500 cursor-pointer transition-all hover:bg-slate-200 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-50">›</button>
         <button :disabled="currentPage === totalPages" @click="goToPage(totalPages)" class="px-2 py-1 border border-slate-200 bg-white rounded text-slate-500 cursor-pointer transition-all hover:bg-slate-200 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-50">»</button>
       </div>

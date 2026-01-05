@@ -1,12 +1,15 @@
 <script setup>
 
 import {ref} from "vue";
+import {useI18n} from "vue-i18n";
 import CloseIcon from "@/components/icons/CloseIcon.vue";
 import BarcodeIcon from "@/components/icons/BarcodeIcon.vue";
 import PlusIcon from "@/components/icons/PlusIcon.vue";
 import TrashIcon from "@/components/icons/TrashIcon.vue";
 import {useField, useForm} from "vee-validate";
 import {productSchema} from "@/validation/productSchema.js";
+
+const { t } = useI18n()
 
 const props = defineProps({
   loading: {type: Boolean, default: false}
@@ -52,8 +55,8 @@ const onSubmit = handleSubmit((values) => {
       class="w-full max-w-3xl bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
       <div class="p-6 px-8 border-b border-slate-200 flex justify-between items-center bg-slate-50">
         <div>
-          <h1 class="text-2xl font-bold">Create Product</h1>
-          <p class="text-sm text-slate-500 mt-1">Add a new item to your global catalog.</p>
+          <h1 class="text-2xl font-bold">{{ t('product.createProduct') }}</h1>
+          <p class="text-sm text-slate-500 mt-1">{{ t('product.addToCatalog') }}</p>
         </div>
         <button
           class="text-slate-500 bg-transparent border-none text-2xl cursor-pointer p-1 leading-none hover:text-slate-600"
@@ -64,24 +67,23 @@ const onSubmit = handleSubmit((values) => {
 
       <form @submit.prevent="onSubmit" class="p-8" novalidate>
         <div class="mb-8">
-          <h3 class="text-xs uppercase tracking-wide text-slate-400 font-bold mb-4">Basic
-            Information</h3>
+          <h3 class="text-xs uppercase tracking-wide text-slate-400 font-bold mb-4">{{ t('product.basicInfo') }}</h3>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium">Product Name</label>
+              <label class="text-sm font-medium">{{ t('product.name') }}</label>
               <input
                 @input="errors.name = null"
                 v-model="name"
                 type="text"
-                placeholder="e.g. Wireless Gaming Mouse"
+                :placeholder="t('product.placeholder.name')"
                 class="w-full py-3 px-3 border border-slate-200 rounded-lg text-sm transition-colors placeholder:text-slate-500 hover:border-slate-400 focus:outline-none focus:border-blue-600 focus:ring-3 focus:ring-blue-600/10"
               />
               <span v-if="errors.name" class="text-xs text-red-600">{{ errors.name }}</span>
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium">SKU Code</label>
+              <label class="text-sm font-medium">{{ t('product.skuCode') }}</label>
               <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
                   <BarcodeIcon class="w-4 h-4 fill-current"/>
@@ -90,7 +92,7 @@ const onSubmit = handleSubmit((values) => {
                   @input="errors.sku = null"
                   v-model="sku"
                   type="text"
-                  placeholder="LOG-2024-001"
+                  :placeholder="t('product.placeholder.sku')"
                   class="w-full py-3 pl-10 pr-3 border border-slate-200 rounded-lg text-sm font-mono transition-colors placeholder:text-slate-500 hover:border-slate-400 focus:outline-none focus:border-blue-600 focus:ring-3 focus:ring-blue-600/10"
                 />
               </div>
@@ -98,14 +100,14 @@ const onSubmit = handleSubmit((values) => {
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-sm font-medium">Base Price</label>
+              <label class="text-sm font-medium">{{ t('product.basePrice') }}</label>
               <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-semibold">$</span>
                 <input
                   @input="errors.price = null"
                   v-model="price"
                   type="number"
-                  placeholder="0.00"
+                  :placeholder="t('product.placeholder.price')"
                   class="w-full py-3 pl-7 pr-3 border border-slate-200 rounded-lg text-sm transition-colors placeholder:text-slate-500 hover:border-slate-400 focus:outline-none focus:border-blue-600 focus:ring-3 focus:ring-blue-600/10"
                 />
               </div>
@@ -119,16 +121,14 @@ const onSubmit = handleSubmit((values) => {
         <div class="mb-8">
           <div class="flex justify-between items-end mb-4">
             <div>
-              <h3 class="text-xs uppercase tracking-wide text-slate-400 font-bold">Dynamic
-                Attributes</h3>
-              <p class="text-xs text-slate-400 mt-1">Add custom properties like Color, Size, or
-                Material.</p>
+              <h3 class="text-xs uppercase tracking-wide text-slate-400 font-bold">{{ t('attributes.title') }}</h3>
+              <p class="text-xs text-slate-400 mt-1">{{ t('attributes.description') }}</p>
             </div>
             <button type="button"
                     class="text-blue-600 bg-transparent border border-transparent py-2 px-3 rounded-lg text-sm font-semibold cursor-pointer transition-all flex items-center gap-1 hover:bg-blue-600/5 hover:border-blue-600/10"
                     @click="attributes.push({key: '', value: ''})">
               <PlusIcon class="w-3 h-3 fill-current"/>
-              Add Attribute
+              {{ t('attributes.addAttribute') }}
             </button>
           </div>
 
@@ -136,12 +136,12 @@ const onSubmit = handleSubmit((values) => {
             <div v-for="(attr, index) in attributes" :key="index"
                  class="flex gap-3 items-center group">
               <div class="flex-1">
-                <input v-model="attr.key" type="text" placeholder="Key"
+                <input v-model="attr.key" type="text" :placeholder="t('attributes.key')"
                        class="w-full py-2.5 px-3 border border-slate-200 rounded-md text-sm focus:outline-none focus:border-blue-600"/>
               </div>
               <div class="text-slate-500 text-lg">→</div>
               <div class="flex-1">
-                <input v-model="attr.value" type="text" placeholder="Value"
+                <input v-model="attr.value" type="text" :placeholder="t('attributes.value')"
                        class="w-full py-2.5 px-3 border border-slate-200 rounded-md text-sm focus:outline-none focus:border-blue-600"/>
               </div>
               <button
@@ -160,12 +160,12 @@ const onSubmit = handleSubmit((values) => {
           class="py-5 px-8 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3 -mx-8 -mb-8 mt-8">
           <button type="button"
                   class="py-2.5 px-5 text-sm font-medium text-slate-500 bg-transparent border-none rounded-lg cursor-pointer transition-all hover:text-slate-900 hover:bg-slate-200"
-                  @click="emit('cancel')">Cancel
+                  @click="emit('cancel')">{{ t('common.cancel') }}
           </button>
           <button type="submit"
                   class="py-2.5 px-5 text-sm font-medium text-white bg-blue-600 border-none rounded-lg shadow-sm cursor-pointer transition-all hover:bg-blue-700 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
                   :disabled="loading">
-            {{ loading ? 'Creating...' : 'Create Product' }}
+            {{ loading ? t('product.creating') : t('product.createProduct') }}
           </button>
         </div>
       </form>

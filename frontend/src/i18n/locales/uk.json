@@ -1,0 +1,93 @@
+{
+  "common": {
+    "loading": "Завантаження...",
+    "cancel": "Скасувати",
+    "delete": "Видалити",
+    "save": "Зберегти",
+    "submit": "Підтвердити",
+    "create": "Створити",
+    "edit": "Редагувати",
+    "search": "Пошук",
+    "total": "Всього",
+    "items": "елементів",
+    "page": "Сторінка",
+    "of": "з",
+    "noData": "Дані відсутні",
+    "confirmDelete": "Ви впевнені, що хочете видалити цей продукт?"
+  },
+  "nav": {
+    "products": "Продукти",
+    "inventory": "Склад"
+  },
+  "footer": {
+    "copyright": "© 2026 LogiFlow. Усі права захищено"
+  },
+  "product": {
+    "catalog": "Каталог продуктів",
+    "catalogDescription": "Керуйте інвентарем та цінами продуктів.",
+    "name": "Назва продукту",
+    "sku": "Артикул",
+    "skuCode": "Код артикулу",
+    "price": "Ціна",
+    "basePrice": "Базова ціна",
+    "category": "Категорія",
+    "createProduct": "Створити продукт",
+    "createNew": "Створити новий",
+    "editProduct": "Редагувати продукт",
+    "saveChanges": "Зберегти зміни",
+    "addToCatalog": "Додайте новий товар до вашого каталогу.",
+    "updateDetails": "Оновіть деталі та атрибути продукту.",
+    "searchProducts": "Пошук продуктів...",
+    "creating": "Створення...",
+    "basicInfo": "Основна інформація",
+    "generalInfo": "Загальна інформація",
+    "placeholder": {
+      "name": "напр. Бездротова ігрова миша",
+      "sku": "LOG-2024-001",
+      "price": "0.00"
+    },
+    "status": {
+      "inStock": "В наявності",
+      "inactive": "Неактивний"
+    }
+  },
+  "attributes": {
+    "title": "Динамічні атрибути",
+    "description": "Додайте власні властивості, такі як Колір, Розмір або Матеріал.",
+    "productAttributes": "Атрибути продукту",
+    "manageAttributes": "Керування атрибутами",
+    "addAttribute": "Додати атрибут",
+    "addNew": "Додати новий",
+    "key": "Ключ",
+    "value": "Значення"
+  },
+  "inventory": {
+    "title": "Управління запасами",
+    "description": "Керуйте рівнями запасів на всіх складах.",
+    "searchSku": "Пошук артикулу...",
+    "availableQuantity": "Доступна кількість",
+    "quantity": "Кількість",
+    "status": "Статус",
+    "actions": "Дії",
+    "operation": "Операція",
+    "type": "Тип",
+    "adjustStock": "Коригувати запас",
+    "addStock": "Додати запас",
+    "removeStock": "Зняти запас",
+    "processing": "Обробка...",
+    "saving": "Збереження...",
+    "loadingInventory": "Завантаження запасів...",
+    "currentQuantity": "Поточна кількість",
+    "enterQuantity": "Введіть кількість",
+    "lowStock": "Низький запас",
+    "inStock": "В наявності"
+  },
+  "validation": {
+    "required": "{field} є обов'язковим",
+    "minLength": "{field} має бути не менше {min} символів",
+    "quantityGreaterZero": "Кількість має бути більше нуля.",
+    "cannotRemoveMore": "Неможливо зняти більше, ніж є в наявності.",
+    "enterValidQuantity": "Будь ласка, введіть дійсну кількість"
+  }
+}
+

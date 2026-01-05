@@ -1,10 +1,12 @@
 <script setup>
 import {onMounted, ref} from "vue";
+import {useI18n} from "vue-i18n";
 import {useInventoryStore} from "@/stores/inventoryStore.js";
 import DataTable from "@/components/DataTable.vue";
 import {StockOperationsType} from "@/utils/stockOperations.js";
 import CloseIcon from "@/components/icons/CloseIcon.vue";
 
+const { t } = useI18n()
 const inventoryStore = useInventoryStore()
 
 const columns = [
@@ -71,8 +73,8 @@ onMounted(() => {
 
     <div class="flex justify-between items-end mb-8 flex-wrap gap-4">
       <div>
-        <h1 class="text-2xl font-bold m-0">Inventory Management</h1>
-        <p class="text-sm text-slate-500 mt-1 mb-0">Manage stock levels across all warehouses.</p>
+        <h1 class="text-2xl font-bold m-0">{{ t('inventory.title') }}</h1>
+        <p class="text-sm text-slate-500 mt-1 mb-0">{{ t('inventory.description') }}</p>
       </div>
 
       <div class="flex gap-3 items-center">
@@ -85,7 +87,7 @@ onMounted(() => {
           <input
             v-model="searchInput"
             type="text"
-            placeholder="Search SKU..."
+            :placeholder="t('inventory.searchSku')"
             class="py-2 px-4 pl-9 border border-slate-200 rounded-lg text-sm w-64 outline-none transition-colors focus:border-blue-600"
           />
         </div>
@@ -121,13 +123,13 @@ onMounted(() => {
           v-if="getStockStatus(item) === 'low'"
           class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700"
         >
-          Low Stock
+          {{ t('inventory.lowStock') }}
         </span>
         <span
           v-else
           class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700"
         >
-          In Stock
+          {{ t('inventory.inStock') }}
         </span>
       </template>
 
@@ -136,7 +138,7 @@ onMounted(() => {
           @click.stop="openAdjustModal(item)"
           class="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium shadow-sm hover:bg-blue-700 transition-colors"
         >
-          Adjust Stock
+          {{ t('inventory.adjustStock') }}
         </button>
       </template>
     </DataTable>
@@ -145,7 +147,7 @@ onMounted(() => {
          @click.self="closeModal">
       <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
         <div class="flex justify-between items-center mb-6">
-          <h2 class="text-lg font-bold text-slate-900">Adjust Stock</h2>
+          <h2 class="text-lg font-bold text-slate-900">{{ t('inventory.adjustStock') }}</h2>
           <button @click="closeModal" class="text-slate-400 hover:text-slate-600">
             <CloseIcon class="w-4 h-4 fill-current"/>
           </button>
@@ -153,10 +155,10 @@ onMounted(() => {
 
         <div class="mb-4">
           <p class="text-sm text-slate-600">
-            SKU: <span class="font-mono font-medium text-slate-900">{{ selectedItem?.sku }}</span>
+            {{ t('product.sku') }}: <span class="font-mono font-medium text-slate-900">{{ selectedItem?.sku }}</span>
           </p>
           <p class="text-sm text-slate-600">
-            Current Quantity: <span class="font-medium text-slate-900">{{
+            {{ t('inventory.currentQuantity') }}: <span class="font-medium text-slate-900">{{
               selectedItem?.availableQuantity
             }}</span>
           </p>
@@ -164,23 +166,23 @@ onMounted(() => {
 
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Type</label>
+            <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('inventory.type') }}</label>
             <select
               v-model="adjustmentType"
               class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-blue-600 outline-none"
             >
-              <option :value="StockOperationsType.ADD">Add Stock</option>
-              <option :value="StockOperationsType.REMOVE">Remove Stock</option>
+              <option :value="StockOperationsType.ADD">{{ t('inventory.addStock') }}</option>
+              <option :value="StockOperationsType.REMOVE">{{ t('inventory.removeStock') }}</option>
             </select>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Quantity</label>
+            <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('inventory.quantity') }}</label>
             <input
               v-model.number="adjustmentQuantity"
               type="number"
               min="1"
-              placeholder="Enter quantity"
+              :placeholder="t('inventory.enterQuantity')"
               class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-blue-600 outline-none"
             />
           </div>
@@ -191,14 +193,14 @@ onMounted(() => {
             @click="closeModal"
             class="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </button>
           <button
             @click="submitAdjustment"
             :disabled="inventoryStore.loading"
             class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium shadow-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {{ inventoryStore.loading ? 'Saving...' : 'Submit' }}
+            {{ inventoryStore.loading ? t('inventory.saving') : t('common.submit') }}
           </button>
         </div>
       </div>

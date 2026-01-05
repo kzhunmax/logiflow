@@ -2,10 +2,12 @@
 import {useRouter} from "vue-router";
 import {useProductStore} from "@/stores/productStore.js";
 import {ref, watch} from "vue";
+import {useI18n} from "vue-i18n";
 import DataTable from "@/components/DataTable.vue";
 import SearchIcon from "@/components/icons/SearchIcon.vue";
 import PlusIcon from "@/components/icons/PlusIcon.vue";
 
+const { t } = useI18n()
 const router = useRouter()
 const productStore = useProductStore()
 if (!productStore.products.length) {
@@ -48,8 +50,8 @@ function handleRowClick(product) {
 
     <div class="flex justify-between items-end mb-8 flex-wrap gap-4">
       <div>
-        <h1 class="text-2xl font-bold m-0">Product Catalog</h1>
-        <p class="text-sm text-slate-500 mt-1 mb-0">Manage your product inventory and prices.</p>
+        <h1 class="text-2xl font-bold m-0">{{ t('product.catalog') }}</h1>
+        <p class="text-sm text-slate-500 mt-1 mb-0">{{ t('product.catalogDescription') }}</p>
       </div>
 
       <div class="flex gap-3 items-center">
@@ -58,7 +60,7 @@ function handleRowClick(product) {
           <input
             v-model="searchInput"
             type="text"
-            placeholder="Search products..."
+            :placeholder="t('product.searchProducts')"
             class="py-2 px-4 pl-9 border border-slate-200 rounded-lg text-sm w-64 outline-none transition-colors focus:border-blue-600"
           />
         </div>
@@ -66,7 +68,7 @@ function handleRowClick(product) {
         <router-link to="products/create"
                      class="inline-flex items-center gap-2 py-2 px-4 bg-blue-600 text-white rounded-lg text-sm font-medium no-underline shadow-sm transition-colors hover:bg-blue-700">
           <PlusIcon class="w-3.5 h-3.5 fill-current"/>
-          Create New
+          {{ t('product.createNew') }}
         </router-link>
       </div>
     </div>
