@@ -17,7 +17,8 @@
   },
   "nav": {
     "products": "Продукти",
-    "inventory": "Склад"
+    "inventory": "Склад",
+    "logout": "Вийти"
   },
   "footer": {
     "copyright": "© 2026 LogiFlow. Усі права захищено"

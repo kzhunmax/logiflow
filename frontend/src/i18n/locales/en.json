@@ -17,7 +17,8 @@
   },
   "nav": {
     "products": "Products",
-    "inventory": "Inventory"
+    "inventory": "Inventory",
+    "logout": "Logout"
   },
   "footer": {
     "copyright": "© 2026 LogiFlow. All rights reserved"

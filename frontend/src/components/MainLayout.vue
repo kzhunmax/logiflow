@@ -1,12 +1,21 @@
 <script setup>
 import {useI18n} from 'vue-i18n'
+import {useRouter} from 'vue-router'
+import {useAuthStore} from '@/stores/authStore.js'
 import LogoIcon from "@/components/icons/LogoIcon.vue";
 
 const {locale, t} = useI18n()
+const router = useRouter()
+const authStore = useAuthStore()
 
 function switchLocale(newLocale) {
   locale.value = newLocale
   localStorage.setItem('locale', newLocale)
+}
+
+function handleLogout() {
+  authStore.logout()
+  router.push('/login')
 }
 </script>
 
@@ -41,6 +50,23 @@ function switchLocale(newLocale) {
             class="px-2 py-1 text-xs font-medium rounded transition-colors"
           >
             UK
+          </button>
+        </div>
+
+        <!-- User Menu -->
+        <div class="flex items-center gap-3 ml-4 border-l border-slate-200 pl-4">
+          <div class="text-right">
+            <p class="text-sm font-medium text-slate-700">{{ authStore.username }}</p>
+            <p class="text-xs text-slate-500">{{ authStore.userRole }}</p>
+          </div>
+          <button
+            @click="handleLogout"
+            class="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            :title="t('nav.logout')"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
           </button>
         </div>
       </div>
