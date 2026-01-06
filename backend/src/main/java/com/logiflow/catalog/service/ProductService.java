@@ -18,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -82,9 +84,15 @@ public class ProductService {
         return mapToDTO(findProductOrThrow(id));
     }
 
+    public List<ProductResponseDTO> findBySkus(List<String> skus) {
+        return productRepository.findBySkuInAndActiveTrue(skus).stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
+
     private Product findProductOrThrow(String id) {
         return productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(id));
+                .orElseThrow(() -> ProductNotFoundException.forId(id));
     }
 
     private Product mapToEntity(ProductRequestDTO dto) {
