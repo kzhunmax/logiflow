@@ -6,3 +6,7 @@ spring:
       ddl-auto: create-drop
   datasource:
     driver-class-name: org.postgresql.Driver
+
+jwt:
+  secret: 415ea452f6ee5b59bc0756e6dd104111df42856f802e01aad18acd0e8ce7586f
+  expiration: 86400000

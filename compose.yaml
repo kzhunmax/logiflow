@@ -9,6 +9,8 @@ services:
       SPRING_MONGODB_URI: ${MONGO_DB_URI}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
     ports:
       - "8080:8080"
     depends_on:
