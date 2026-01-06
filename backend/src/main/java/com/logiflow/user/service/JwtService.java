@@ -3,6 +3,8 @@ package com.logiflow.user.service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -15,13 +17,29 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@Slf4j
 public class JwtService {
+
+    private static final int MIN_SECRET_KEY_BYTES = 32; // 256 bits for HS256
 
     @Value("${jwt.secret}")
     private String secretKey;
 
     @Value("${jwt.expiration:86400000}")
     private long jwtExpiration;
+
+    @PostConstruct
+    public void validateSecretKey() {
+        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
+        if (keyBytes.length < MIN_SECRET_KEY_BYTES) {
+            throw new IllegalStateException(
+                    String.format("JWT secret key must be at least %d bytes (256 bits) for HS256 algorithm. " +
+                            "Current key is %d bytes. Please provide a longer secret key.",
+                            MIN_SECRET_KEY_BYTES, keyBytes.length)
+            );
+        }
+        log.info("JWT secret key validation passed ({} bytes)", keyBytes.length);
+    }
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
