@@ -20,7 +20,6 @@ public class RedisConfig {
 
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
-        // Define a validator that allows all subtypes of the base package "com.logiflow."
         PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
                 .allowIfBaseType("com.logiflow.")
                 .allowIfBaseType("java.util.")
@@ -30,10 +29,9 @@ public class RedisConfig {
 
         GenericJacksonJsonRedisSerializer valueSerializer =
                 GenericJacksonJsonRedisSerializer.builder()
-                        .enableDefaultTyping(ptv)  // adds @class for ALL types (including records/final classes)
+                        .enableDefaultTyping(ptv)
                         .build();
 
-        // Default cache configuration applied to all caches
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofHours(1))
                 .disableCachingNullValues()

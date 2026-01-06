@@ -21,20 +21,15 @@ public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
-    @Value("${jwt.refresh-expiration:604800000}") // 7 days default
+    @Value("${jwt.refresh-expiration}")
     private long refreshTokenExpiration;
-
-    // ==================== Query Methods ====================
 
     public Optional<RefreshToken> findByToken(String token) {
         return refreshTokenRepository.findByToken(token);
     }
 
-    // ==================== Command Methods ====================
-
     @Transactional
     public RefreshToken createRefreshToken(User user) {
-        // Delete existing refresh token for user (single session)
         refreshTokenRepository.findByUser(user)
                 .ifPresent(refreshTokenRepository::delete);
 
@@ -53,10 +48,8 @@ public class RefreshTokenService {
     public RefreshToken rotateRefreshToken(RefreshToken oldToken) {
         User user = oldToken.getUser();
 
-        // Delete old token
         refreshTokenRepository.delete(oldToken);
 
-        // Create new token (token rotation for security)
         RefreshToken newToken = RefreshToken.builder()
                 .user(user)
                 .token(generateToken())
@@ -74,16 +67,12 @@ public class RefreshTokenService {
         log.info("Deleted refresh token for user: {}", user.getUsername());
     }
 
-    // ==================== Validation ====================
-
     public void verifyExpiration(RefreshToken token) {
         if (token.isExpired()) {
             refreshTokenRepository.delete(token);
             throw new RefreshTokenExpiredException("Refresh token has expired. Please login again.");
         }
     }
-
-    // ==================== Helpers ====================
 
     private String generateToken() {
         return UUID.randomUUID().toString();

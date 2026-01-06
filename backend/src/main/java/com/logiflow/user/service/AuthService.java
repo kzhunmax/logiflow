@@ -26,8 +26,6 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
 
-    // ==================== Public Methods ====================
-
     @Transactional
     public AuthResponse login(LoginRequest request) {
         authenticateUser(request.username(), request.password());
@@ -58,8 +56,6 @@ public class AuthService {
         refreshTokenService.deleteByUser(user);
         log.info("User logged out: {}", username);
     }
-
-    // ==================== Helper Methods ====================
 
     private void authenticateUser(String username, String password) {
         authenticationManager.authenticate(

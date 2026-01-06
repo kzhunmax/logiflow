@@ -4,9 +4,9 @@ import com.logiflow.catalog.dto.ProductResponseDTO;
 import com.logiflow.catalog.service.ProductService;
 import com.logiflow.inventory.service.InventoryService;
 import com.logiflow.order.dto.OrderItemRequestDTO;
-import com.logiflow.order.dto.OrderItemResponseDTO;
 import com.logiflow.order.dto.OrderRequestDTO;
 import com.logiflow.order.dto.OrderResponseDTO;
+import com.logiflow.order.mapper.OrderMapper;
 import com.logiflow.order.model.Order;
 import com.logiflow.order.model.OrderItem;
 import com.logiflow.order.model.OrderStatus;
@@ -32,8 +32,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductService productService;
     private final InventoryService inventoryService;
-
-    // ==================== Command Methods ====================
+    private final OrderMapper orderMapper;
 
     @Transactional
     public OrderResponseDTO createOrder(OrderRequestDTO request) {
@@ -46,18 +45,14 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
 
         log.info("Order created with ID: {} for customer: {}", savedOrder.getId(), savedOrder.getCustomerName());
-        return toResponseDTO(savedOrder);
+        return orderMapper.toDto(savedOrder);
     }
-
-    // ==================== Extraction Helpers ====================
 
     private List<String> extractSkus(List<OrderItemRequestDTO> items) {
         return items.stream()
                 .map(OrderItemRequestDTO::sku)
                 .toList();
     }
-
-    // ==================== Validation Helpers ====================
 
     private Map<String, BigDecimal> validateAndGetPrices(List<String> requestedSkus) {
         List<ProductResponseDTO> products = productService.findBySkus(requestedSkus);
@@ -82,16 +77,12 @@ public class OrderService {
         }
     }
 
-    // ==================== Stock Helpers ====================
-
     private void reserveStockForItems(List<OrderItemRequestDTO> items) {
         items.forEach(item -> {
             log.info("Reserving {} units of SKU: {}", item.quantity(), item.sku());
             inventoryService.reserveStock(item.sku(), item.quantity());
         });
     }
-
-    // ==================== Build Helpers ====================
 
     private Order buildOrder(OrderRequestDTO request, Map<String, BigDecimal> priceMap) {
         List<OrderItem> orderItems = buildOrderItems(request.items(), priceMap);
@@ -117,27 +108,4 @@ public class OrderService {
                 .build();
     }
 
-    // ==================== Mapping Helpers ====================
-
-    private OrderResponseDTO toResponseDTO(Order order) {
-        List<OrderItemResponseDTO> itemDTOs = order.getItems().stream()
-                .map(this::toItemResponseDTO)
-                .toList();
-
-        return new OrderResponseDTO(
-                order.getId(),
-                order.getCustomerName(),
-                order.getStatus(),
-                order.getCreatedAt(),
-                itemDTOs
-        );
-    }
-
-    private OrderItemResponseDTO toItemResponseDTO(OrderItem item) {
-        return new OrderItemResponseDTO(
-                item.getSku(),
-                item.getQuantity(),
-                item.getPriceAtTimeOfOrder()
-        );
-    }
 }

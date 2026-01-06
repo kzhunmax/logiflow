@@ -3,6 +3,7 @@ package com.logiflow.user.service;
 import com.logiflow.shared.exception.DuplicateResourceException;
 import com.logiflow.shared.exception.UserNotFoundException;
 import com.logiflow.user.dto.*;
+import com.logiflow.user.mapper.UserMapper;
 import com.logiflow.user.model.Role;
 import com.logiflow.user.model.User;
 import com.logiflow.user.repository.UserRepository;
@@ -21,27 +22,26 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     private static final Set<Role> ADMIN_ROLES = Set.of(Role.SUPER_ADMIN, Role.ADMIN);
     private static final Set<Role> ADMIN_CREATABLE_ROLES = Set.of(Role.WAREHOUSE_MANAGER, Role.WAREHOUSE_WORKER, Role.CUSTOMER);
 
-    // ==================== Query Methods ====================
-
     @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
-                .map(UserResponse::from)
+                .map(userMapper::toDto)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long id) {
-        return UserResponse.from(findByIdOrThrow(id));
+        return userMapper.toDto(findByIdOrThrow(id));
     }
 
     @Transactional(readOnly = true)
     public UserResponse getUserByUsername(String username) {
-        return UserResponse.from(findByUsernameOrThrow(username));
+        return userMapper.toDto(findByUsernameOrThrow(username));
     }
 
     @Transactional(readOnly = true)
@@ -52,11 +52,9 @@ public class UserService {
     @Transactional(readOnly = true)
     public List<UserResponse> getUsersByRole(Role role) {
         return userRepository.findByRole(role).stream()
-                .map(UserResponse::from)
+                .map(userMapper::toDto)
                 .toList();
     }
-
-    // ==================== Command Methods ====================
 
     @Transactional
     public UserResponse createUser(CreateUserRequest request, User currentUser) {
@@ -73,7 +71,7 @@ public class UserService {
                 .createdBy(currentUser.getId())
                 .build();
 
-        return UserResponse.from(userRepository.save(user));
+        return userMapper.toDto(userRepository.save(user));
     }
 
     @Transactional
@@ -89,7 +87,7 @@ public class UserService {
         updateFieldIfPresent(request.role(), user::setRole);
         updateFieldIfPresent(request.enabled(), user::setEnabled);
 
-        return UserResponse.from(userRepository.save(user));
+        return userMapper.toDto(userRepository.save(user));
     }
 
     @Transactional
@@ -117,10 +115,8 @@ public class UserService {
         validateNotSelf(currentUser, user, "Cannot disable your own account");
 
         user.setEnabled(!user.isEnabled());
-        return UserResponse.from(userRepository.save(user));
+        return userMapper.toDto(userRepository.save(user));
     }
-
-    // ==================== Lookup Helpers ====================
 
     private User findByIdOrThrow(Long id) {
         return userRepository.findById(id)
@@ -132,15 +128,11 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
     }
 
-    // ==================== Update Helpers ====================
-
     private <T> void updateFieldIfPresent(T value, java.util.function.Consumer<T> updater) {
         if (value != null) {
             updater.accept(value);
         }
     }
-
-    // ==================== Validation Helpers ====================
 
     private void validateNotSelf(User currentUser, User targetUser, String message) {
         if (targetUser.getId().equals(currentUser.getId())) {

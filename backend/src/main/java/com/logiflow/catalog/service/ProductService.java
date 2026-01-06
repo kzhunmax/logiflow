@@ -2,6 +2,7 @@ package com.logiflow.catalog.service;
 
 import com.logiflow.catalog.dto.ProductRequestDTO;
 import com.logiflow.catalog.dto.ProductResponseDTO;
+import com.logiflow.catalog.mapper.ProductMapper;
 import com.logiflow.catalog.model.Product;
 import com.logiflow.catalog.repository.ProductRepository;
 import com.logiflow.shared.event.ProductCreatedEvent;
@@ -27,8 +28,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ApplicationEventPublisher eventPublisher;
-
-    // ==================== Query Methods ====================
+    private final ProductMapper productMapper;
 
     @Transactional(readOnly = true)
     public Page<ProductResponseDTO> getAllProducts(Pageable pageable, String search) {
@@ -36,33 +36,31 @@ public class ProductService {
                 ? searchProducts(search, pageable)
                 : productRepository.findByActiveTrue(pageable);
 
-        return products.map(this::toResponseDTO);
+        return products.map(productMapper::toDto);
     }
 
     @Cacheable(value = "products", key = "#id")
     @Transactional(readOnly = true)
     public ProductResponseDTO getProductById(String id) {
-        return toResponseDTO(findByIdOrThrow(id));
+        return productMapper.toDto(findByIdOrThrow(id));
     }
 
     @Transactional(readOnly = true)
     public List<ProductResponseDTO> findBySkus(List<String> skus) {
         return productRepository.findBySkuInAndActiveTrue(skus).stream()
-                .map(this::toResponseDTO)
+                .map(productMapper::toDto)
                 .toList();
     }
-
-    // ==================== Command Methods ====================
 
     @Transactional
     @CachePut(value = "products", key = "#result.id")
     public ProductResponseDTO createProduct(ProductRequestDTO dto) {
-        Product product = toEntity(dto);
+        Product product = productMapper.toEntity(dto);
         Product savedProduct = productRepository.save(product);
 
         publishEvent(new ProductCreatedEvent(savedProduct.getId(), savedProduct.getSku()));
 
-        return toResponseDTO(savedProduct);
+        return productMapper.toDto(savedProduct);
     }
 
     @Transactional
@@ -76,7 +74,7 @@ public class ProductService {
 
         publishSkuUpdateEventIfChanged(oldSku, dto.sku(), savedProduct.getId());
 
-        return toResponseDTO(savedProduct);
+        return productMapper.toDto(savedProduct);
     }
 
     @Transactional
@@ -87,14 +85,10 @@ public class ProductService {
         productRepository.save(product);
     }
 
-    // ==================== Lookup Helpers ====================
-
     private Product findByIdOrThrow(String id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> ProductNotFoundException.forId(id));
     }
-
-    // ==================== Search Helpers ====================
 
     private boolean hasSearch(String search) {
         return search != null && !search.isBlank();
@@ -105,16 +99,12 @@ public class ProductService {
                 search, search, pageable);
     }
 
-    // ==================== Update Helpers ====================
-
     private void updateProductFields(Product product, ProductRequestDTO dto) {
         product.setName(dto.name());
         product.setSku(dto.sku());
         product.setPrice(dto.price());
         product.setAttributes(dto.attributes());
     }
-
-    // ==================== Event Helpers ====================
 
     private void publishEvent(Object event) {
         log.info("Publishing event: {}", event.getClass().getSimpleName());
@@ -126,28 +116,5 @@ public class ProductService {
             log.info("SKU changed from {} to {}", oldSku, newSku);
             publishEvent(new ProductSkuUpdatedEvent(productId, oldSku, newSku));
         }
-    }
-
-    // ==================== Mapping Helpers ====================
-
-    private Product toEntity(ProductRequestDTO dto) {
-        return Product.builder()
-                .name(dto.name())
-                .sku(dto.sku())
-                .price(dto.price())
-                .attributes(dto.attributes())
-                .active(true)
-                .build();
-    }
-
-    private ProductResponseDTO toResponseDTO(Product product) {
-        return new ProductResponseDTO(
-                product.getId(),
-                product.getName(),
-                product.getSku(),
-                product.getPrice(),
-                product.getAttributes(),
-                product.getActive()
-        );
     }
 }

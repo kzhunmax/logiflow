@@ -14,7 +14,7 @@ import java.util.List;
 @Configuration
 public class OpenApiConfig {
 
-    @Value("${spring.application.name:LogiFlow API}")
+    @Value("${spring.application.name}")
     private String applicationName;
 
     @Bean

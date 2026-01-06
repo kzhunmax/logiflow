@@ -59,16 +59,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    // ==================== Token Extraction ====================
 
     private String extractToken(HttpServletRequest request) {
-        // Try cookie first (primary method)
         String cookieToken = extractTokenFromCookie(request);
         if (cookieToken != null) {
             return cookieToken;
         }
 
-        // Fallback to Authorization header (for Swagger/testing)
         return extractTokenFromHeader(request);
     }
 

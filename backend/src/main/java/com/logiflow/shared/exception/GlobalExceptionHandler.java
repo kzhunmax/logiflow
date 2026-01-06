@@ -1,13 +1,12 @@
 package com.logiflow.shared.exception;
 
 import com.logiflow.shared.dto.ErrorResponse;
-import com.logiflow.user.service.AuthService;
-import com.logiflow.user.service.RefreshTokenService;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -68,6 +67,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidRefreshTokenException.class)
     public ResponseEntity<@NonNull ErrorResponse> handleInvalidRefreshTokenException(InvalidRefreshTokenException ex) {
         return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<@NonNull ErrorResponse> handleBadCredentialsException() {
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Invalid username or password", null);
     }
 
     @ExceptionHandler(Exception.class)

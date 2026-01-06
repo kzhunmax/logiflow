@@ -4,6 +4,7 @@ import com.logiflow.user.dto.AuthResponse;
 import com.logiflow.user.dto.LoginRequest;
 import com.logiflow.user.dto.RefreshTokenRequest;
 import com.logiflow.user.dto.UserInfoResponse;
+import com.logiflow.user.service.AuthCookieService;
 import com.logiflow.user.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -12,11 +13,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,19 +27,8 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Authentication", description = "Authentication endpoints")
 public class AuthController {
 
-    private static final String ACCESS_TOKEN_COOKIE = "access_token";
-    private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
-
     private final AuthService authService;
-
-    @Value("${jwt.expiration}")
-    private int accessTokenExpiration;
-
-    @Value("${jwt.refresh-expiration}")
-    private int refreshTokenExpiration;
-
-    @Value("${app.cookie.secure:true}")
-    private boolean secureCookie;
+    private final AuthCookieService authCookieService;
 
     @Operation(summary = "Login", description = "Authenticate user and set tokens in HTTP-only cookies")
     @ApiResponses(value = {
@@ -54,9 +42,7 @@ public class AuthController {
             @Valid @RequestBody LoginRequest request,
             HttpServletResponse response) {
         AuthResponse authResponse = authService.login(request);
-
-        addTokenCookies(response, authResponse.accessToken(), authResponse.refreshToken());
-
+        authCookieService.addTokenCookies(response, authResponse.accessToken(), authResponse.refreshToken());
         return ResponseEntity.ok(new UserInfoResponse(authResponse.username(), authResponse.role()));
     }
 
@@ -68,16 +54,14 @@ public class AuthController {
     })
     @PostMapping("/refresh")
     public ResponseEntity<UserInfoResponse> refreshToken(
-            @CookieValue(name = REFRESH_TOKEN_COOKIE, required = false) String refreshToken,
+            @CookieValue(name = AuthCookieService.REFRESH_TOKEN_COOKIE, required = false) String refreshToken,
             HttpServletResponse response) {
         if (refreshToken == null || refreshToken.isBlank()) {
             return ResponseEntity.status(401).build();
         }
 
         AuthResponse authResponse = authService.refreshToken(new RefreshTokenRequest(refreshToken));
-
-        addTokenCookies(response, authResponse.accessToken(), authResponse.refreshToken());
-
+        authCookieService.addTokenCookies(response, authResponse.accessToken(), authResponse.refreshToken());
         return ResponseEntity.ok(new UserInfoResponse(authResponse.username(), authResponse.role()));
     }
 
@@ -93,32 +77,8 @@ public class AuthController {
         if (userDetails != null) {
             authService.logout(userDetails.getUsername());
         }
-
-        clearTokenCookies(response);
-
+        authCookieService.clearTokenCookies(response);
         return ResponseEntity.noContent().build();
-    }
-
-    // ==================== Cookie Helpers ====================
-
-    private void addTokenCookies(HttpServletResponse response, String accessToken, String refreshToken) {
-        response.addCookie(createCookie(ACCESS_TOKEN_COOKIE, accessToken, accessTokenExpiration / 1000));
-        response.addCookie(createCookie(REFRESH_TOKEN_COOKIE, refreshToken, refreshTokenExpiration / 1000));
-    }
-
-    private void clearTokenCookies(HttpServletResponse response) {
-        response.addCookie(createCookie(ACCESS_TOKEN_COOKIE, "", 0));
-        response.addCookie(createCookie(REFRESH_TOKEN_COOKIE, "", 0));
-    }
-
-    private Cookie createCookie(String name, String value, int maxAgeSeconds) {
-        Cookie cookie = new Cookie(name, value);
-        cookie.setHttpOnly(true);           // Not accessible via JavaScript
-        cookie.setSecure(secureCookie);     // Only sent over HTTPS (configurable for dev)
-        cookie.setPath("/api");             // Only sent to API endpoints
-        cookie.setMaxAge(maxAgeSeconds);    // Expiration
-        cookie.setAttribute("SameSite", "Strict"); // CSRF protection
-        return cookie;
     }
 }
 

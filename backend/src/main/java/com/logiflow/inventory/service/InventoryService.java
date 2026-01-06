@@ -1,6 +1,7 @@
 package com.logiflow.inventory.service;
 
 import com.logiflow.inventory.dto.InventoryResponseDTO;
+import com.logiflow.inventory.mapper.InventoryMapper;
 import com.logiflow.inventory.model.Inventory;
 import com.logiflow.inventory.repository.InventoryRepository;
 import com.logiflow.shared.exception.InsufficientStockException;
@@ -19,22 +20,19 @@ import java.util.List;
 public class InventoryService {
 
     private final InventoryRepository inventoryRepository;
-
-    // ==================== Query Methods ====================
+    private final InventoryMapper inventoryMapper;
 
     @Transactional(readOnly = true)
     public List<InventoryResponseDTO> getInventoriesBySKUs(List<String> skus) {
         return inventoryRepository.findBySkuIn(skus).stream()
-                .map(this::toResponseDTO)
+                .map(inventoryMapper::toDto)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public InventoryResponseDTO getAvailableInventory(String sku) {
-        return toResponseDTO(findBySkuOrThrow(sku));
+        return inventoryMapper.toDto(findBySkuOrThrow(sku));
     }
-
-    // ==================== Command Methods ====================
 
     @Transactional
     public void initializeInventory(String sku) {
@@ -73,8 +71,6 @@ public class InventoryService {
         log.info("Updated inventory SKU from {} to {}", oldSku, newSku);
     }
 
-    // ==================== Lookup Helpers ====================
-
     private Inventory findBySkuOrThrow(String sku) {
         return inventoryRepository.findBySku(sku)
                 .orElseThrow(() -> new InventoryNotFoundException(sku));
@@ -84,8 +80,6 @@ public class InventoryService {
         return inventoryRepository.findBySkuForUpdate(sku)
                 .orElseThrow(() -> new InventoryNotFoundException(sku));
     }
-
-    // ==================== Stock Helpers ====================
 
     private void addOrCreateStock(String sku, Integer amount) {
         inventoryRepository.findBySku(sku)
@@ -109,22 +103,10 @@ public class InventoryService {
         inventoryRepository.save(newInventory);
     }
 
-    // ==================== Validation Helpers ====================
-
     private void validateSufficientStock(Inventory inventory, Integer amount) {
-        int available = calculateAvailable(inventory);
+        int available = inventory.getQuantity() - inventory.getReserved();
         if (available < amount) {
             throw new InsufficientStockException("Insufficient stock available to reserve");
         }
-    }
-
-    // ==================== Mapping Helpers ====================
-
-    private int calculateAvailable(Inventory inventory) {
-        return inventory.getQuantity() - inventory.getReserved();
-    }
-
-    private InventoryResponseDTO toResponseDTO(Inventory inventory) {
-        return new InventoryResponseDTO(inventory.getSku(), calculateAvailable(inventory));
     }
 }

@@ -34,26 +34,28 @@ public class DataInitializer {
     @Bean
     CommandLineRunner initSuperAdmin() {
         return _ -> {
-            // Check if any SUPER_ADMIN exists
             if (userRepository.findByRole(Role.SUPER_ADMIN).isEmpty()) {
                 log.info("No SUPER_ADMIN found. Creating initial super admin account...");
 
-                User superAdmin = User.builder()
-                        .username(superAdminUsername)
-                        .email(superAdminEmail)
-                        .password(passwordEncoder.encode(superAdminPassword))
-                        .fullName(superAdminFullName)
-                        .role(Role.SUPER_ADMIN)
-                        .enabled(true)
-                        .build();
-
+                User superAdmin = buildAdmin();
                 userRepository.save(superAdmin);
-                log.info("Super admin account created successfully with username: {}", superAdminUsername);
-                log.warn("IMPORTANT: Please change the default super admin password immediately!");
+
+                log.info("Super admin account created successfully.");
             } else {
                 log.info("Super admin account already exists. Skipping initialization.");
             }
         };
+    }
+
+    private User buildAdmin() {
+        return User.builder()
+                .username(superAdminUsername)
+                .email(superAdminEmail)
+                .password(passwordEncoder.encode(superAdminPassword))
+                .fullName(superAdminFullName)
+                .role(Role.SUPER_ADMIN)
+                .enabled(true)
+                .build();
     }
 }
 
