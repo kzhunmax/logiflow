@@ -28,74 +28,109 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ApplicationEventPublisher eventPublisher;
 
+    // ==================== Query Methods ====================
+
+    @Transactional(readOnly = true)
     public Page<ProductResponseDTO> getAllProducts(Pageable pageable, String search) {
-        Page<Product> products;
-        if (search != null && !search.isBlank()) {
-            products = productRepository.findByNameContainingIgnoreCaseAndActiveTrueOrSkuContainingIgnoreCaseAndActiveTrue(search, search, pageable);
-            return products.map(this::mapToDTO);
-        }
-        products = productRepository.findByActiveTrue(pageable);
-        return products.map(this::mapToDTO);
+        Page<Product> products = hasSearch(search)
+                ? searchProducts(search, pageable)
+                : productRepository.findByActiveTrue(pageable);
+
+        return products.map(this::toResponseDTO);
     }
+
+    @Cacheable(value = "products", key = "#id")
+    @Transactional(readOnly = true)
+    public ProductResponseDTO getProductById(String id) {
+        return toResponseDTO(findByIdOrThrow(id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductResponseDTO> findBySkus(List<String> skus) {
+        return productRepository.findBySkuInAndActiveTrue(skus).stream()
+                .map(this::toResponseDTO)
+                .toList();
+    }
+
+    // ==================== Command Methods ====================
 
     @Transactional
     @CachePut(value = "products", key = "#result.id")
     public ProductResponseDTO createProduct(ProductRequestDTO dto) {
-        Product product = mapToEntity(dto);
+        Product product = toEntity(dto);
         Product savedProduct = productRepository.save(product);
-        log.info("Publishing ProductCreatedEvent for SKU: {}", savedProduct.getSku());
-        eventPublisher.publishEvent(new ProductCreatedEvent(savedProduct.getId(), savedProduct.getSku()));
-        return mapToDTO(savedProduct);
+
+        publishEvent(new ProductCreatedEvent(savedProduct.getId(), savedProduct.getSku()));
+
+        return toResponseDTO(savedProduct);
     }
 
     @Transactional
     @CachePut(value = "products", key = "#id")
     public ProductResponseDTO updateProduct(String id, ProductRequestDTO dto) {
-        Product product = findProductOrThrow(id);
-
+        Product product = findByIdOrThrow(id);
         String oldSku = product.getSku();
-        boolean skuChanged = !oldSku.equals(dto.sku());
 
-        product.setName(dto.name());
-        product.setSku(dto.sku());
-        product.setPrice(dto.price());
-        product.setAttributes(dto.attributes());
-
+        updateProductFields(product, dto);
         Product savedProduct = productRepository.save(product);
 
-        if (skuChanged) {
-            log.info("Publishing ProductSkuUpdatedEvent: oldSku={}, newSku={}", oldSku, dto.sku());
-            eventPublisher.publishEvent(new ProductSkuUpdatedEvent(savedProduct.getId(), oldSku, dto.sku()));
-        }
+        publishSkuUpdateEventIfChanged(oldSku, dto.sku(), savedProduct.getId());
 
-        return mapToDTO(savedProduct);
+        return toResponseDTO(savedProduct);
     }
 
     @Transactional
     @CacheEvict(value = "products", key = "#id")
     public void deleteProduct(String id) {
-        Product product = findProductOrThrow(id);
+        Product product = findByIdOrThrow(id);
         product.setActive(false);
         productRepository.save(product);
     }
 
-    @Cacheable(value = "products", key = "#id")
-    public ProductResponseDTO getProductById(String id) {
-        return mapToDTO(findProductOrThrow(id));
-    }
+    // ==================== Lookup Helpers ====================
 
-    public List<ProductResponseDTO> findBySkus(List<String> skus) {
-        return productRepository.findBySkuInAndActiveTrue(skus).stream()
-                .map(this::mapToDTO)
-                .toList();
-    }
-
-    private Product findProductOrThrow(String id) {
+    private Product findByIdOrThrow(String id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> ProductNotFoundException.forId(id));
     }
 
-    private Product mapToEntity(ProductRequestDTO dto) {
+    // ==================== Search Helpers ====================
+
+    private boolean hasSearch(String search) {
+        return search != null && !search.isBlank();
+    }
+
+    private Page<Product> searchProducts(String search, Pageable pageable) {
+        return productRepository.findByNameContainingIgnoreCaseAndActiveTrueOrSkuContainingIgnoreCaseAndActiveTrue(
+                search, search, pageable);
+    }
+
+    // ==================== Update Helpers ====================
+
+    private void updateProductFields(Product product, ProductRequestDTO dto) {
+        product.setName(dto.name());
+        product.setSku(dto.sku());
+        product.setPrice(dto.price());
+        product.setAttributes(dto.attributes());
+    }
+
+    // ==================== Event Helpers ====================
+
+    private void publishEvent(Object event) {
+        log.info("Publishing event: {}", event.getClass().getSimpleName());
+        eventPublisher.publishEvent(event);
+    }
+
+    private void publishSkuUpdateEventIfChanged(String oldSku, String newSku, String productId) {
+        if (!oldSku.equals(newSku)) {
+            log.info("SKU changed from {} to {}", oldSku, newSku);
+            publishEvent(new ProductSkuUpdatedEvent(productId, oldSku, newSku));
+        }
+    }
+
+    // ==================== Mapping Helpers ====================
+
+    private Product toEntity(ProductRequestDTO dto) {
         return Product.builder()
                 .name(dto.name())
                 .sku(dto.sku())
@@ -105,7 +140,7 @@ public class ProductService {
                 .build();
     }
 
-    private ProductResponseDTO mapToDTO(Product product) {
+    private ProductResponseDTO toResponseDTO(Product product) {
         return new ProductResponseDTO(
                 product.getId(),
                 product.getName(),

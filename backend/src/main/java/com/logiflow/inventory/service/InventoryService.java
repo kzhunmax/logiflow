@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,15 +20,21 @@ public class InventoryService {
 
     private final InventoryRepository inventoryRepository;
 
+    // ==================== Query Methods ====================
 
+    @Transactional(readOnly = true)
     public List<InventoryResponseDTO> getInventoriesBySKUs(List<String> skus) {
         return inventoryRepository.findBySkuIn(skus).stream()
-                .map(inventory -> new InventoryResponseDTO(
-                        inventory.getSku(),
-                        inventory.getQuantity() - inventory.getReserved()
-                ))
+                .map(this::toResponseDTO)
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public InventoryResponseDTO getAvailableInventory(String sku) {
+        return toResponseDTO(findBySkuOrThrow(sku));
+    }
+
+    // ==================== Command Methods ====================
 
     @Transactional
     public void initializeInventory(String sku) {
@@ -44,49 +49,55 @@ public class InventoryService {
     @Transactional
     public void addStock(String sku, Integer amount) {
         try {
-            attemptAddStock(sku, amount);
+            addOrCreateStock(sku, amount);
         } catch (DataIntegrityViolationException e) {
-            attemptAddStock(sku, amount);
-        }
-    }
-
-    private void attemptAddStock(String sku, Integer amount) {
-        Optional<Inventory> existing = inventoryRepository.findBySku(sku);
-        if (existing.isPresent()) {
-            Inventory inventory = existing.get();
-            inventory.setQuantity(inventory.getQuantity() + amount);
-            inventoryRepository.save(inventory);
-        } else {
-            createInventory(sku, amount);
+            // Retry once on race condition
+            addOrCreateStock(sku, amount);
         }
     }
 
     @Transactional
     public void reserveStock(String sku, Integer amount) {
-        Inventory inventory = inventoryRepository.findBySkuForUpdate(sku).orElseThrow(() -> new InventoryNotFoundException(sku));
-        if (inventory.getQuantity() - inventory.getReserved() >= amount) {
-            inventory.setReserved(inventory.getReserved() + amount);
-            inventoryRepository.save(inventory);
-        } else {
-            throw new InsufficientStockException("Insufficient stock available to reserve");
-        }
-    }
+        Inventory inventory = findBySkuForUpdateOrThrow(sku);
+        validateSufficientStock(inventory, amount);
 
-    @Transactional(readOnly = true)
-    public InventoryResponseDTO getAvailableInventory(String sku) {
-        Inventory inventory = inventoryRepository.findBySku(sku)
-                .orElseThrow(() -> new InventoryNotFoundException(sku));
-        int available = inventory.getQuantity() - inventory.getReserved();
-        return new InventoryResponseDTO(inventory.getSku(), available);
+        inventory.setReserved(inventory.getReserved() + amount);
+        inventoryRepository.save(inventory);
     }
 
     @Transactional
     public void updateSku(String oldSku, String newSku) {
-        Inventory inventory = inventoryRepository.findBySku(oldSku)
-                .orElseThrow(() -> new InventoryNotFoundException(oldSku));
+        Inventory inventory = findBySkuOrThrow(oldSku);
         inventory.setSku(newSku);
         inventoryRepository.save(inventory);
         log.info("Updated inventory SKU from {} to {}", oldSku, newSku);
+    }
+
+    // ==================== Lookup Helpers ====================
+
+    private Inventory findBySkuOrThrow(String sku) {
+        return inventoryRepository.findBySku(sku)
+                .orElseThrow(() -> new InventoryNotFoundException(sku));
+    }
+
+    private Inventory findBySkuForUpdateOrThrow(String sku) {
+        return inventoryRepository.findBySkuForUpdate(sku)
+                .orElseThrow(() -> new InventoryNotFoundException(sku));
+    }
+
+    // ==================== Stock Helpers ====================
+
+    private void addOrCreateStock(String sku, Integer amount) {
+        inventoryRepository.findBySku(sku)
+                .ifPresentOrElse(
+                        inventory -> incrementQuantity(inventory, amount),
+                        () -> createInventory(sku, amount)
+                );
+    }
+
+    private void incrementQuantity(Inventory inventory, Integer amount) {
+        inventory.setQuantity(inventory.getQuantity() + amount);
+        inventoryRepository.save(inventory);
     }
 
     private void createInventory(String sku, Integer quantity) {
@@ -96,5 +107,24 @@ public class InventoryService {
                 .reserved(0)
                 .build();
         inventoryRepository.save(newInventory);
+    }
+
+    // ==================== Validation Helpers ====================
+
+    private void validateSufficientStock(Inventory inventory, Integer amount) {
+        int available = calculateAvailable(inventory);
+        if (available < amount) {
+            throw new InsufficientStockException("Insufficient stock available to reserve");
+        }
+    }
+
+    // ==================== Mapping Helpers ====================
+
+    private int calculateAvailable(Inventory inventory) {
+        return inventory.getQuantity() - inventory.getReserved();
+    }
+
+    private InventoryResponseDTO toResponseDTO(Inventory inventory) {
+        return new InventoryResponseDTO(inventory.getSku(), calculateAvailable(inventory));
     }
 }

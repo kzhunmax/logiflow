@@ -33,46 +33,42 @@ public class OrderService {
     private final ProductService productService;
     private final InventoryService inventoryService;
 
+    // ==================== Command Methods ====================
+
     @Transactional
     public OrderResponseDTO createOrder(OrderRequestDTO request) {
-        List<String> requestedSkus = request.items().stream()
+        List<String> skus = extractSkus(request.items());
+        Map<String, BigDecimal> priceMap = validateAndGetPrices(skus);
+
+        reserveStockForItems(request.items());
+
+        Order order = buildOrder(request, priceMap);
+        Order savedOrder = orderRepository.save(order);
+
+        log.info("Order created with ID: {} for customer: {}", savedOrder.getId(), savedOrder.getCustomerName());
+        return toResponseDTO(savedOrder);
+    }
+
+    // ==================== Extraction Helpers ====================
+
+    private List<String> extractSkus(List<OrderItemRequestDTO> items) {
+        return items.stream()
                 .map(OrderItemRequestDTO::sku)
                 .toList();
-
-        // 1. Validate SKUs exist and get prices
-        Map<String, BigDecimal> priceMap = validateAndGetPrices(requestedSkus);
-
-        // 2. Reserve stock for each item (within same transaction)
-        for (OrderItemRequestDTO item : request.items()) {
-            log.info("Reserving {} units of SKU: {}", item.quantity(), item.sku());
-            inventoryService.reserveStock(item.sku(), item.quantity());
-        }
-
-        // 3. Build order items with price at time of order
-        List<OrderItem> orderItems = request.items().stream()
-                .map(item -> OrderItem.builder()
-                        .sku(item.sku())
-                        .quantity(item.quantity())
-                        .priceAtTimeOfOrder(priceMap.get(item.sku()))
-                        .build())
-                .toList();
-
-        // 4. Create and save order with PENDING status
-        Order order = Order.builder()
-                .customerName(request.customerName())
-                .status(OrderStatus.PENDING)
-                .items(new ArrayList<>(orderItems))
-                .build();
-
-        Order savedOrder = orderRepository.save(order);
-        log.info("Order created with ID: {} for customer: {}", savedOrder.getId(), savedOrder.getCustomerName());
-
-        return mapToResponseDTO(savedOrder);
     }
+
+    // ==================== Validation Helpers ====================
 
     private Map<String, BigDecimal> validateAndGetPrices(List<String> requestedSkus) {
         List<ProductResponseDTO> products = productService.findBySkus(requestedSkus);
 
+        validateAllSkusExist(requestedSkus, products);
+
+        return products.stream()
+                .collect(Collectors.toMap(ProductResponseDTO::sku, ProductResponseDTO::price));
+    }
+
+    private void validateAllSkusExist(List<String> requestedSkus, List<ProductResponseDTO> products) {
         Set<String> foundSkus = products.stream()
                 .map(ProductResponseDTO::sku)
                 .collect(Collectors.toSet());
@@ -84,17 +80,48 @@ public class OrderService {
         if (!missingSkus.isEmpty()) {
             throw ProductNotFoundException.forSkus(missingSkus);
         }
-
-        return products.stream()
-                .collect(Collectors.toMap(ProductResponseDTO::sku, ProductResponseDTO::price));
     }
 
-    private OrderResponseDTO mapToResponseDTO(Order order) {
+    // ==================== Stock Helpers ====================
+
+    private void reserveStockForItems(List<OrderItemRequestDTO> items) {
+        items.forEach(item -> {
+            log.info("Reserving {} units of SKU: {}", item.quantity(), item.sku());
+            inventoryService.reserveStock(item.sku(), item.quantity());
+        });
+    }
+
+    // ==================== Build Helpers ====================
+
+    private Order buildOrder(OrderRequestDTO request, Map<String, BigDecimal> priceMap) {
+        List<OrderItem> orderItems = buildOrderItems(request.items(), priceMap);
+
+        return Order.builder()
+                .customerName(request.customerName())
+                .status(OrderStatus.PENDING)
+                .items(new ArrayList<>(orderItems))
+                .build();
+    }
+
+    private List<OrderItem> buildOrderItems(List<OrderItemRequestDTO> items, Map<String, BigDecimal> priceMap) {
+        return items.stream()
+                .map(item -> toOrderItem(item, priceMap.get(item.sku())))
+                .toList();
+    }
+
+    private OrderItem toOrderItem(OrderItemRequestDTO item, BigDecimal price) {
+        return OrderItem.builder()
+                .sku(item.sku())
+                .quantity(item.quantity())
+                .priceAtTimeOfOrder(price)
+                .build();
+    }
+
+    // ==================== Mapping Helpers ====================
+
+    private OrderResponseDTO toResponseDTO(Order order) {
         List<OrderItemResponseDTO> itemDTOs = order.getItems().stream()
-                .map(item -> new OrderItemResponseDTO(
-                        item.getSku(),
-                        item.getQuantity(),
-                        item.getPriceAtTimeOfOrder()))
+                .map(this::toItemResponseDTO)
                 .toList();
 
         return new OrderResponseDTO(
@@ -103,6 +130,14 @@ public class OrderService {
                 order.getStatus(),
                 order.getCreatedAt(),
                 itemDTOs
+        );
+    }
+
+    private OrderItemResponseDTO toItemResponseDTO(OrderItem item) {
+        return new OrderItemResponseDTO(
+                item.getSku(),
+                item.getQuantity(),
+                item.getPriceAtTimeOfOrder()
         );
     }
 }

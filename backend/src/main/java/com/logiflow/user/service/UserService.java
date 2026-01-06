@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +21,11 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    private static final Set<Role> ADMIN_ROLES = Set.of(Role.SUPER_ADMIN, Role.ADMIN);
+    private static final Set<Role> ADMIN_CREATABLE_ROLES = Set.of(Role.WAREHOUSE_MANAGER, Role.WAREHOUSE_WORKER, Role.CUSTOMER);
+
+    // ==================== Query Methods ====================
 
     @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers() {
@@ -30,22 +36,17 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long id) {
-        return userRepository.findById(id)
-                .map(UserResponse::from)
-                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+        return UserResponse.from(findByIdOrThrow(id));
     }
 
     @Transactional(readOnly = true)
     public UserResponse getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .map(UserResponse::from)
-                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
+        return UserResponse.from(findByUsernameOrThrow(username));
     }
 
     @Transactional(readOnly = true)
     public User getEntityByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
+        return findByUsernameOrThrow(username);
     }
 
     @Transactional(readOnly = true)
@@ -54,6 +55,8 @@ public class UserService {
                 .map(UserResponse::from)
                 .toList();
     }
+
+    // ==================== Command Methods ====================
 
     @Transactional
     public UserResponse createUser(CreateUserRequest request, User currentUser) {
@@ -75,33 +78,23 @@ public class UserService {
 
     @Transactional
     public UserResponse updateUser(Long id, UpdateUserRequest request, User currentUser) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
-
+        User user = findByIdOrThrow(id);
         validateUserModificationPermission(currentUser, user, request.role());
 
-        if (request.email() != null) {
-            validateUniqueConstraints(null, request.email(), id);
-            user.setEmail(request.email());
-        }
-        if (request.fullName() != null) {
-            user.setFullName(request.fullName());
-        }
-        if (request.role() != null) {
-            user.setRole(request.role());
-        }
-        if (request.enabled() != null) {
-            user.setEnabled(request.enabled());
-        }
+        updateFieldIfPresent(request.email(), email -> {
+            validateUniqueConstraints(null, email, id);
+            user.setEmail(email);
+        });
+        updateFieldIfPresent(request.fullName(), user::setFullName);
+        updateFieldIfPresent(request.role(), user::setRole);
+        updateFieldIfPresent(request.enabled(), user::setEnabled);
 
         return UserResponse.from(userRepository.save(user));
     }
 
     @Transactional
     public void changePassword(Long id, ChangePasswordRequest request, User currentUser) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
-
+        User user = findByIdOrThrow(id);
         validateUserModificationPermission(currentUser, user, null);
 
         user.setPassword(passwordEncoder.encode(request.newPassword()));
@@ -110,64 +103,71 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id, User currentUser) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
-
+        User user = findByIdOrThrow(id);
         validateUserModificationPermission(currentUser, user, null);
-
-        // Prevent self-deletion
-        if (user.getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("Cannot delete your own account");
-        }
+        validateNotSelf(currentUser, user, "Cannot delete your own account");
 
         userRepository.delete(user);
     }
 
     @Transactional
     public UserResponse toggleUserStatus(Long id, User currentUser) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
-
+        User user = findByIdOrThrow(id);
         validateUserModificationPermission(currentUser, user, null);
-
-        // Prevent self-disabling
-        if (user.getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("Cannot disable your own account");
-        }
+        validateNotSelf(currentUser, user, "Cannot disable your own account");
 
         user.setEnabled(!user.isEnabled());
         return UserResponse.from(userRepository.save(user));
     }
 
+    // ==================== Lookup Helpers ====================
+
+    private User findByIdOrThrow(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+    }
+
+    private User findByUsernameOrThrow(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
+    }
+
+    // ==================== Update Helpers ====================
+
+    private <T> void updateFieldIfPresent(T value, java.util.function.Consumer<T> updater) {
+        if (value != null) {
+            updater.accept(value);
+        }
+    }
+
+    // ==================== Validation Helpers ====================
+
+    private void validateNotSelf(User currentUser, User targetUser, String message) {
+        if (targetUser.getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException(message);
+        }
+    }
+
     private void validateUserCreationPermission(User currentUser, Role targetRole) {
         Role currentRole = currentUser.getRole();
 
-        // Only SUPER_ADMIN can create other SUPER_ADMINs or ADMINs
-        if (targetRole == Role.SUPER_ADMIN || targetRole == Role.ADMIN) {
-            if (currentRole != Role.SUPER_ADMIN) {
-                throw new AccessDeniedException("Only SUPER_ADMIN can create admin accounts");
-            }
+        switch (currentRole) {
+            case SUPER_ADMIN -> { /* Can create any role */ }
+            case ADMIN -> validateAdminCanCreate(targetRole);
+            case WAREHOUSE_MANAGER -> validateManagerCanCreate(targetRole);
+            default -> throw new AccessDeniedException("You do not have permission to create users");
         }
+    }
 
-        // ADMIN can create WAREHOUSE_MANAGER, WAREHOUSE_WORKER, and CUSTOMER
-        if (currentRole == Role.ADMIN) {
-            if (targetRole != Role.WAREHOUSE_MANAGER &&
-                targetRole != Role.WAREHOUSE_WORKER &&
-                targetRole != Role.CUSTOMER) {
-                throw new AccessDeniedException("ADMIN can only create warehouse staff and customers");
-            }
+    private void validateAdminCanCreate(Role targetRole) {
+        if (!ADMIN_CREATABLE_ROLES.contains(targetRole)) {
+            throw new AccessDeniedException("ADMIN can only create warehouse staff and customers");
         }
+    }
 
-        // WAREHOUSE_MANAGER can only create WAREHOUSE_WORKER
-        if (currentRole == Role.WAREHOUSE_MANAGER) {
-            if (targetRole != Role.WAREHOUSE_WORKER) {
-                throw new AccessDeniedException("WAREHOUSE_MANAGER can only create warehouse workers");
-            }
-        }
-
-        // WAREHOUSE_WORKER and CUSTOMER cannot create users
-        if (currentRole == Role.WAREHOUSE_WORKER || currentRole == Role.CUSTOMER) {
-            throw new AccessDeniedException("You do not have permission to create users");
+    private void validateManagerCanCreate(Role targetRole) {
+        if (targetRole != Role.WAREHOUSE_WORKER) {
+            throw new AccessDeniedException("WAREHOUSE_MANAGER can only create warehouse workers");
         }
     }
 
@@ -175,57 +175,62 @@ public class UserService {
         Role currentRole = currentUser.getRole();
         Role targetRole = targetUser.getRole();
 
-        // SUPER_ADMIN can modify anyone
         if (currentRole == Role.SUPER_ADMIN) {
-            return;
+            return; // Can modify anyone
         }
 
-        // ADMIN cannot modify SUPER_ADMIN
         if (targetRole == Role.SUPER_ADMIN) {
             throw new AccessDeniedException("Cannot modify SUPER_ADMIN accounts");
         }
 
-        // ADMIN cannot promote users to SUPER_ADMIN or ADMIN
-        if (currentRole == Role.ADMIN) {
-            if (newRole == Role.SUPER_ADMIN || newRole == Role.ADMIN) {
-                throw new AccessDeniedException("ADMIN cannot promote users to admin roles");
-            }
-            // ADMIN cannot modify other ADMINs
-            if (targetRole == Role.ADMIN && !currentUser.getId().equals(targetUser.getId())) {
-                throw new AccessDeniedException("ADMIN cannot modify other admin accounts");
-            }
-            return;
+        switch (currentRole) {
+            case ADMIN -> validateAdminCanModify(currentUser, targetUser, newRole);
+            case WAREHOUSE_MANAGER -> validateManagerCanModify(targetUser, newRole);
+            default -> throw new AccessDeniedException("You do not have permission to modify users");
         }
+    }
 
-        // WAREHOUSE_MANAGER can only modify WAREHOUSE_WORKER
-        if (currentRole == Role.WAREHOUSE_MANAGER) {
-            if (targetRole != Role.WAREHOUSE_WORKER) {
-                throw new AccessDeniedException("WAREHOUSE_MANAGER can only modify warehouse workers");
-            }
-            if (newRole != null && newRole != Role.WAREHOUSE_WORKER) {
-                throw new AccessDeniedException("WAREHOUSE_MANAGER cannot change worker roles");
-            }
-            return;
+    private void validateAdminCanModify(User currentUser, User targetUser, Role newRole) {
+        if (ADMIN_ROLES.contains(newRole)) {
+            throw new AccessDeniedException("ADMIN cannot promote users to admin roles");
         }
+        if (targetUser.getRole() == Role.ADMIN && !currentUser.getId().equals(targetUser.getId())) {
+            throw new AccessDeniedException("ADMIN cannot modify other admin accounts");
+        }
+    }
 
-        throw new AccessDeniedException("You do not have permission to modify users");
+    private void validateManagerCanModify(User targetUser, Role newRole) {
+        if (targetUser.getRole() != Role.WAREHOUSE_WORKER) {
+            throw new AccessDeniedException("WAREHOUSE_MANAGER can only modify warehouse workers");
+        }
+        if (newRole != null && newRole != Role.WAREHOUSE_WORKER) {
+            throw new AccessDeniedException("WAREHOUSE_MANAGER cannot change worker roles");
+        }
     }
 
     private void validateUniqueConstraints(String username, String email, Long excludeUserId) {
         if (username != null) {
-            userRepository.findByUsername(username)
-                    .filter(u -> !u.getId().equals(excludeUserId))
-                    .ifPresent(_ -> {
-                        throw new DuplicateResourceException("Username already exists: " + username);
-                    });
+            checkNotDuplicate(
+                    userRepository.findByUsername(username),
+                    excludeUserId,
+                    "Username already exists: " + username
+            );
         }
         if (email != null) {
-            userRepository.findByEmail(email)
-                    .filter(u -> !u.getId().equals(excludeUserId))
-                    .ifPresent(_ -> {
-                        throw new DuplicateResourceException("Email already exists: " + email);
-                    });
+            checkNotDuplicate(
+                    userRepository.findByEmail(email),
+                    excludeUserId,
+                    "Email already exists: " + email
+            );
         }
+    }
+
+    private void checkNotDuplicate(java.util.Optional<User> existing, Long excludeUserId, String message) {
+        existing
+                .filter(u -> !u.getId().equals(excludeUserId))
+                .ifPresent(_ -> {
+                    throw new DuplicateResourceException(message);
+                });
     }
 }
 
