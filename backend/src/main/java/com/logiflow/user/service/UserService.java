@@ -43,6 +43,12 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    public User getEntityByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
+    }
+
+    @Transactional(readOnly = true)
     public List<UserResponse> getUsersByRole(Role role) {
         return userRepository.findByRole(role).stream()
                 .map(UserResponse::from)

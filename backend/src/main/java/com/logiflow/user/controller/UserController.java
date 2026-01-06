@@ -3,7 +3,6 @@ package com.logiflow.user.controller;
 import com.logiflow.user.dto.*;
 import com.logiflow.user.model.Role;
 import com.logiflow.user.model.User;
-import com.logiflow.user.repository.UserRepository;
 import com.logiflow.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,7 +30,6 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-    private final UserRepository userRepository;
 
     @Operation(summary = "Get all users", description = "Retrieve list of all users (Admin only)")
     @ApiResponses(value = {
@@ -165,8 +162,7 @@ public class UserController {
     }
 
     private User getCurrentUser(UserDetails userDetails) {
-        return userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("Current user not found"));
+        return userService.getEntityByUsername(userDetails.getUsername());
     }
 }
 
