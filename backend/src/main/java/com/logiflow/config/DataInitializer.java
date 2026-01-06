@@ -19,13 +19,13 @@ public class DataInitializer {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${app.super-admin.username:superadmin}")
+    @Value("${app.super-admin.username}")
     private String superAdminUsername;
 
-    @Value("${app.super-admin.email:superadmin@logiflow.com}")
+    @Value("${app.super-admin.email}")
     private String superAdminEmail;
 
-    @Value("${app.super-admin.password:SuperAdmin@123}")
+    @Value("${app.super-admin.password}")
     private String superAdminPassword;
 
     @Value("${app.super-admin.full-name:Super Administrator}")
