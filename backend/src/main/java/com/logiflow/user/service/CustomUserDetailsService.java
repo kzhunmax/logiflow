@@ -27,6 +27,10 @@ public class CustomUserDetailsService implements UserDetailsService {
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
+                user.isEnabled(),
+                true, // accountNonExpired
+                true, // credentialsNonExpired
+                true, // accountNonLocked
                 List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
         );
     }

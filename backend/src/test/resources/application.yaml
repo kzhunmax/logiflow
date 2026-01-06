@@ -10,3 +10,11 @@ spring:
 jwt:
   secret: 415ea452f6ee5b59bc0756e6dd104111df42856f802e01aad18acd0e8ce7586f
   expiration: 86400000
+
+app:
+  super-admin:
+    username: superadmin
+    email: superadmin@logiflow.com
+    password: SuperAdmin@123
+    full-name: Super Administrator
+

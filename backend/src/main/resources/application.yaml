@@ -19,3 +19,11 @@ spring:
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION}
+
+app:
+  super-admin:
+    username: ${SUPER_ADMIN_USERNAME:superadmin}
+    email: ${SUPER_ADMIN_EMAIL:superadmin@logiflow.com}
+    password: ${SUPER_ADMIN_PASSWORD:SuperAdmin@123}
+    full-name: ${SUPER_ADMIN_FULL_NAME:Super Administrator}
+
