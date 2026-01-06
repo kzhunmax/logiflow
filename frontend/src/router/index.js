@@ -31,8 +31,11 @@ export const router = createRouter({
 
 // Navigation guard for authentication
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('logiflow_token');
-  const isAuthenticated = !!token;
+  // With HTTP-only cookies, we can't access tokens directly
+  // We use stored user info as a hint for UI routing
+  // Actual auth is verified by the server on API calls
+  const user = localStorage.getItem('logiflow_user');
+  const isAuthenticated = !!user;
 
   if (to.meta.requiresAuth && !isAuthenticated) {
     // Redirect to login if trying to access protected route without auth

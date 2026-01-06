@@ -1,6 +1,8 @@
 package com.logiflow.shared.exception;
 
 import com.logiflow.shared.dto.ErrorResponse;
+import com.logiflow.user.service.AuthService;
+import com.logiflow.user.service.RefreshTokenService;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
@@ -56,6 +58,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<@NonNull ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
         return buildErrorResponse(HttpStatus.FORBIDDEN, ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(RefreshTokenExpiredException.class)
+    public ResponseEntity<@NonNull ErrorResponse> handleRefreshTokenExpiredException(RefreshTokenExpiredException ex) {
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<@NonNull ErrorResponse> handleInvalidRefreshTokenException(InvalidRefreshTokenException ex) {
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), null);
     }
 
     @ExceptionHandler(Exception.class)
