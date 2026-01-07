@@ -9,6 +9,8 @@ import com.logiflow.shared.exception.InventoryNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,14 +46,13 @@ public class InventoryService {
         log.info("Initialized inventory for SKU: {}", sku);
     }
 
+    @Retryable(
+            retryFor = DataIntegrityViolationException.class,
+            backoff = @Backoff(delay = 50) // 50 ms delay between retries
+    )
     @Transactional
     public void addStock(String sku, Integer amount) {
-        try {
-            addOrCreateStock(sku, amount);
-        } catch (DataIntegrityViolationException e) {
-            // Retry once on race condition
-            addOrCreateStock(sku, amount);
-        }
+        addOrCreateStock(sku, amount);
     }
 
     @Transactional
