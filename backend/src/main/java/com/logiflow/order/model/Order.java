@@ -7,7 +7,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "orders")
+@Table(
+        name = "orders",
+        indexes = {
+                @Index(name = "idx_order_id", columnList = "order_id"),
+                @Index(name = "idx_status", columnList = "status"),
+                @Index(name = "idx_created_at", columnList = "createdAt")
+        }
+)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
