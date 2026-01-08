@@ -44,7 +44,8 @@ public class SecurityConfig {
                                 "/api/v1/auth/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/actuator/health"
                         ).permitAll()
                         // User management - requires admin roles (further refined by @PreAuthorize)
                         .requestMatchers("/api/v1/users/**").authenticated()
