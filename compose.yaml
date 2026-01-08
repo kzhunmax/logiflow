@@ -48,6 +48,8 @@ services:
       - "27017:27017"
     networks:
       - logiflow-network
+    volumes:
+      - mongo_data:/data/db
 
   postgres:
     image: postgres:18.1-alpine
@@ -60,6 +62,8 @@ services:
       - "5432:5432"
     networks:
       - logiflow-network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   redis:
     image: redis:8.2.2-alpine
@@ -68,7 +72,14 @@ services:
       - "6379:6379"
     networks:
       - logiflow-network
+    volumes:
+      - redis_data:/data
 
 networks:
   logiflow-network:
     driver: bridge
+
+volumes:
+  postgres_data:
+  mongo_data:
+  redis_data:
