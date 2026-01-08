@@ -8,6 +8,8 @@ import com.logiflow.shared.exception.InsufficientStockException;
 import com.logiflow.shared.exception.InventoryNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -32,6 +34,7 @@ public class InventoryService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "inventory", key = "#sku")
     public InventoryResponseDTO getAvailableInventory(String sku) {
         return inventoryMapper.toDto(findBySkuOrThrow(sku));
     }
@@ -51,11 +54,13 @@ public class InventoryService {
             backoff = @Backoff(delay = 50) // 50 ms delay between retries
     )
     @Transactional
+    @CacheEvict(value = "inventory", key = "#sku")
     public void addStock(String sku, Integer amount) {
         addOrCreateStock(sku, amount);
     }
 
     @Transactional
+    @CacheEvict(value = "inventory", key = "#sku")
     public void reserveStock(String sku, Integer amount) {
         Inventory inventory = findBySkuForUpdateOrThrow(sku);
         validateSufficientStock(inventory, amount);

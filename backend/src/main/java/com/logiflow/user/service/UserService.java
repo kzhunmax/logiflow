@@ -8,6 +8,9 @@ import com.logiflow.user.model.Role;
 import com.logiflow.user.model.User;
 import com.logiflow.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,6 +43,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "users", key = "#username")
     public UserResponse getUserByUsername(String username) {
         return userMapper.toDto(findByUsernameOrThrow(username));
     }
@@ -75,6 +79,7 @@ public class UserService {
     }
 
     @Transactional
+    @CachePut(value = "users", key = "#currentUser.username")
     public UserResponse updateUser(Long id, UpdateUserRequest request, User currentUser) {
         User user = findByIdOrThrow(id);
         validateUserModificationPermission(currentUser, user, request.role());
@@ -100,6 +105,7 @@ public class UserService {
     }
 
     @Transactional
+    @CacheEvict(value = "users", key = "#currentUser.username")
     public void deleteUser(Long id, User currentUser) {
         User user = findByIdOrThrow(id);
         validateUserModificationPermission(currentUser, user, null);
